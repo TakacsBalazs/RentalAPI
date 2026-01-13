@@ -1,4 +1,5 @@
 ﻿using Rental.API.Common;
+using Rental.API.Models.Requests;
 
 namespace Rental.API
 {
