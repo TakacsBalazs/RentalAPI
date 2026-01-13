@@ -1,4 +1,6 @@
-﻿namespace Rental.API.Models.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Rental.API.Models.Requests
 {
     public class CreateUserRequest
     {
