@@ -18,6 +18,7 @@ namespace Rental.API.Data
             builder.Entity<User>(entity =>
             {
                 entity.Property(x => x.FullName).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.UserName).IsRequired().HasMaxLength(20);
             });
         }
 
