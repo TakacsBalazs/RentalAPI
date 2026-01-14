@@ -32,5 +32,17 @@ namespace Rental.API.Controllers
 
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetAllTool()
+        {
+            var result = await toolService.GetAllToolAsync();
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
