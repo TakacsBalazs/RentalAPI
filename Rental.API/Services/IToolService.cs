@@ -10,5 +10,7 @@ namespace Rental.API.Services
         Task<Result<CreateToolResponse>> CreateToolAsync(CreateToolRequest request, string userId);
 
         Task<Result<IEnumerable<ToolResponse>>> GetAllToolAsync();
+
+        Task<Result<ToolResponse>> GetToolByIdAsync(int id);
     }
 }
