@@ -22,5 +22,16 @@ namespace Rental.API.Controllers
             }
             return Ok("Successfull registration!");
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
+        {
+            var result = await authService.LoginAsync(request);
+            if(!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
