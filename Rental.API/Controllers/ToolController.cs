@@ -44,5 +44,17 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetToolById(int id)
+        {
+            var result = await toolService.GetToolByIdAsync(id);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
