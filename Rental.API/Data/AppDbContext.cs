@@ -19,6 +19,7 @@ namespace Rental.API.Data
             {
                 entity.Property(x => x.FullName).IsRequired().HasMaxLength(100);
                 entity.Property(x => x.UserName).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
             });
         }
 
