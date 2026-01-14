@@ -29,9 +29,9 @@ namespace Rental.API.Models
 
     public enum Category
     {
-        CONSTRUCTION,
-        GARDENING,
-        CLEANING,
-        WOODWORKING
+        Construction,
+        Gardening,
+        Cleaning,
+        Woodworking
     }
 }
