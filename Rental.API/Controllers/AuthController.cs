@@ -3,6 +3,8 @@ using Rental.API.Models.Requests;
 
 namespace Rental.API.Controllers
 {
+    [Route("api/auth")]
+    [ApiController]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService authService;
