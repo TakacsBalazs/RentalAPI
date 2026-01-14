@@ -7,6 +7,7 @@ using Rental.API.Models;
 using Rental.API.Models.Dtos;
 using Rental.API.Models.Requests;
 using Rental.API.Models.Responses;
+using System.Threading.Tasks;
 
 namespace Rental.API.Services
 {
@@ -78,6 +79,33 @@ namespace Rental.API.Services
             }).ToListAsync();
 
             return Result<IEnumerable<ToolResponse>>.Success(tools);
+        }
+
+        public async Task<Result<ToolResponse>> GetToolByIdAsync(int id)
+        {
+            var tool = await context.Tools.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
+            if(tool == null)
+            {
+                return Result<ToolResponse>.Failure("Invalid id!");
+            }
+            var response = new ToolResponse
+            {
+                Id = tool.Id,
+                Name = tool.Name,
+                IsActive = tool.IsActive,
+                Description = tool.Description,
+                Category = tool.Category,
+                Location = tool.Location,
+                DailyPrice = tool.DailyPrice,
+                SecurityDeposit = tool.SecurityDeposit,
+                User = new UserDto
+                {
+                    Id = tool.User.Id,
+                    FullName = tool.User.FullName
+                }
+            };
+
+            return Result<ToolResponse>.Success(response);
         }
     }
 }
