@@ -1,13 +1,17 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Rental.API.Common;
 
 namespace Rental.API.Models
 {
-    public class User : IdentityUser
+    public class User : IdentityUser, ISoftDelete
     {
         public string FullName { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Tool> Tools { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

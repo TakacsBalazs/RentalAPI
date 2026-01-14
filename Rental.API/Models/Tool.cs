@@ -1,6 +1,8 @@
-﻿namespace Rental.API.Models
+﻿using Rental.API.Common;
+
+namespace Rental.API.Models
 {
-    public class Tool
+    public class Tool : ISoftDelete
     {
 
         public int Id { get; set; }
@@ -21,6 +23,8 @@
         public User User { get; set; }
 
         public Category Category { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 
     public enum Category

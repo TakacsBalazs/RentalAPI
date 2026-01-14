@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Rental.API.Common;
 using Rental.API.Models;
 
 namespace Rental.API.Data
@@ -23,6 +24,7 @@ namespace Rental.API.Data
                 entity.Property(x => x.UserName).IsRequired().HasMaxLength(20);
                 entity.Property(x => x.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
             });
+            builder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
 
             builder.Entity<Tool>(entity =>
             {
@@ -37,6 +39,23 @@ namespace Rental.API.Data
 
                 entity.HasOne(x => x.User).WithMany(x => x.Tools).HasForeignKey(x => x.UserId);
             });
+            builder.Entity<Tool>().HasQueryFilter(x => !x.IsDeleted);
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var entries = ChangeTracker.Entries<ISoftDelete>()
+                                       .Where(e => e.State == EntityState.Deleted);
+
+            foreach (var entry in entries)
+            {
+                entry.State = EntityState.Modified;
+
+                entry.Entity.IsDeleted = true;
+                entry.Entity.DeletedAt = DateTime.UtcNow;
+            }
+
+            return base.SaveChangesAsync(cancellationToken);
         }
 
     }
