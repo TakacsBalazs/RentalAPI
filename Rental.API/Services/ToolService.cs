@@ -59,9 +59,16 @@ namespace Rental.API.Services
             return Result<CreateToolResponse>.Success(response);
         }
 
-        public async Task<Result<IEnumerable<ToolResponse>>> GetAllToolAsync()
+        public async Task<Result<IEnumerable<ToolResponse>>> GetAllToolAsync(GetToolsRequest request)
         {
-            var tools = await context.Tools.Include(x => x.User).Select(x => new ToolResponse
+            var tools = context.Tools.AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.UserId))
+            {
+                tools = tools.Where(x => x.UserId == request.UserId);
+            }   
+                    
+            var response = await tools.Select(x => new ToolResponse
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -78,7 +85,7 @@ namespace Rental.API.Services
                 }
             }).ToListAsync();
 
-            return Result<IEnumerable<ToolResponse>>.Success(tools);
+            return Result<IEnumerable<ToolResponse>>.Success(response);
         }
 
         public async Task<Result<ToolResponse>> GetToolByIdAsync(int id)
