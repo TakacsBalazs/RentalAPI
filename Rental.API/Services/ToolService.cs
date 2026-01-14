@@ -22,12 +22,12 @@ namespace Rental.API.Services
             this.serviceProvider = serviceProvider;
         }
 
-        public async Task<Result<CreateToolResponse>> CreateToolAsync(CreateToolRequest request, string userId)
+        public async Task<Result<ToolResponse>> CreateToolAsync(CreateToolRequest request, string userId)
         {
             var validate = await serviceProvider.ValidateRequestAsync<CreateToolRequest>(request);
             if (!validate.IsSuccess)
             {
-                return Result<CreateToolResponse>.Failure(validate.Errors);
+                return Result<ToolResponse>.Failure(validate.Errors);
             }
 
             var tool = new Tool
@@ -44,7 +44,9 @@ namespace Rental.API.Services
             context.Tools.Add(tool);
             await context.SaveChangesAsync();
 
-            var response = new CreateToolResponse
+            var user = await context.Users.FindAsync(userId);
+
+            var response = new ToolResponse
             {
                 Id = tool.Id,
                 Name = tool.Name,
@@ -53,10 +55,15 @@ namespace Rental.API.Services
                 Category = tool.Category,
                 Location = tool.Location,
                 DailyPrice = tool.DailyPrice,
-                SecurityDeposit = tool.SecurityDeposit
+                SecurityDeposit = tool.SecurityDeposit,
+                User = new UserDto
+                {
+                    Id = userId,
+                    FullName = user?.FullName ?? "Unkown User"
+                }
             };
 
-            return Result<CreateToolResponse>.Success(response);
+            return Result<ToolResponse>.Success(response);
         }
 
         public async Task<Result<IEnumerable<ToolResponse>>> GetAllToolAsync(GetToolsRequest request)

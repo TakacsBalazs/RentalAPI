@@ -7,7 +7,7 @@ namespace Rental.API.Services
     public interface IToolService
     {
 
-        Task<Result<CreateToolResponse>> CreateToolAsync(CreateToolRequest request, string userId);
+        Task<Result<ToolResponse>> CreateToolAsync(CreateToolRequest request, string userId);
 
         Task<Result<IEnumerable<ToolResponse>>> GetAllToolAsync(GetToolsRequest request);
 
