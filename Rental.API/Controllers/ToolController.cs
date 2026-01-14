@@ -35,9 +35,9 @@ namespace Rental.API.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAllTool()
+        public async Task<IActionResult> GetAllTool([FromQuery] GetToolsRequest request)
         {
-            var result = await toolService.GetAllToolAsync();
+            var result = await toolService.GetAllToolAsync(request);
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Errors);
