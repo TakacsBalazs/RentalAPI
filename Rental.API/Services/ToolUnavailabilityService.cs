@@ -5,6 +5,8 @@ using Rental.API.Extensions;
 using Rental.API.Models;
 using Rental.API.Models.Requests;
 using Rental.API.Models.Responses;
+using System.Collections.Generic;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Rental.API.Services
 {
@@ -84,6 +86,39 @@ namespace Rental.API.Services
             await context.SaveChangesAsync();
 
             return Result.Success();
+        }
+
+        public async Task<Result<IEnumerable<ToolUnavailabilityResponse>>> GetToolUnavailabilitiesAsync(GetToolUnavailabilitiesRequest request)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<GetToolUnavailabilitiesRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result<IEnumerable<ToolUnavailabilityResponse>>.Failure(validate.Errors);
+            }
+
+            var toolUnavailibilities = context.ToolUnavailabilities
+                .Where(x => x.ToolId == request.ToolId);
+
+            if (request.From != null)
+            {
+                toolUnavailibilities = toolUnavailibilities.Where(x => x.EndDate >= request.From);
+            }
+
+            if (request.To != null)
+            {
+                toolUnavailibilities = toolUnavailibilities.Where(x => x.StartDate <= request.To);
+            }
+
+            var response = await toolUnavailibilities.OrderBy(x => x.StartDate)
+                .Select(x => new ToolUnavailabilityResponse
+            {
+                Id = x.Id,
+                ToolId = x.ToolId,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate
+            }).ToListAsync();
+
+            return Result<IEnumerable<ToolUnavailabilityResponse>>.Success(response);
         }
     }
 }
