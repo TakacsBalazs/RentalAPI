@@ -7,7 +7,8 @@ namespace Rental.API.Services
     public interface IToolUnavailabilityService
     {
 
-        Task<Result<ToolUnavailabilityResponse>> CreateToolUnavailabilityAsync(CreateToolUnavailabilityRequest request, string id);
+        Task<Result<ToolUnavailabilityResponse>> CreateToolUnavailabilityAsync(CreateToolUnavailabilityRequest request, string userId);
 
+        Task<Result> DeleteToolUnavailabilityAsync(int toolUnavailabilityId, string userId);
     }
 }
