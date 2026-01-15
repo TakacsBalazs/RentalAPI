@@ -32,5 +32,19 @@ namespace Rental.API.Controllers
 
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteToolUnavailability(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await toolUnavailabilityService.DeleteToolUnavailabilityAsync(id, userId);
+
+            if(!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok("Successful delete!");
+        }
     }
 }
