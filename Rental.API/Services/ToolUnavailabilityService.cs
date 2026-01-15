@@ -67,5 +67,23 @@ namespace Rental.API.Services
             };
             return Result<ToolUnavailabilityResponse>.Success(response);
         }
+
+        public async Task<Result> DeleteToolUnavailabilityAsync(int toolUnavailabilityId, string userId)
+        {
+            var toolUnavailability = await context.ToolUnavailabilities.Include(x => x.Tool).FirstOrDefaultAsync(x => x.Id == toolUnavailabilityId);
+            if (toolUnavailability == null)
+            {
+                return Result.Failure("Invalid Tool Unavailability Id");
+            }
+
+            if(toolUnavailability.Tool.UserId != userId) {
+                return Result.Failure("You can't delete this!");
+            }
+
+            context.ToolUnavailabilities.Remove(toolUnavailability);
+            await context.SaveChangesAsync();
+
+            return Result.Success();
+        }
     }
 }
