@@ -1,0 +1,71 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Rental.API.Common;
+using Rental.API.Data;
+using Rental.API.Extensions;
+using Rental.API.Models;
+using Rental.API.Models.Requests;
+using Rental.API.Models.Responses;
+
+namespace Rental.API.Services
+{
+    public class ToolUnavailabilityService : IToolUnavailabilityService
+    {
+        private readonly AppDbContext context;
+        private readonly IServiceProvider serviceProvider;
+
+        public ToolUnavailabilityService(AppDbContext context, IServiceProvider serviceProvider)
+        {
+            this.context = context;
+            this.serviceProvider = serviceProvider;
+        }
+
+        public async Task<Result<ToolUnavailabilityResponse>> CreateToolUnavailabilityAsync(CreateToolUnavailabilityRequest request, string userId)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<CreateToolUnavailabilityRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result<ToolUnavailabilityResponse>.Failure(validate.Errors);
+            }
+
+            var tool = await context.Tools.FindAsync(request.ToolId);
+            if(tool == null)
+            {
+                return Result<ToolUnavailabilityResponse>.Failure("Invalid Tool Id!");
+            }
+
+            if(tool.UserId != userId)
+            {
+                return Result<ToolUnavailabilityResponse>.Failure("You don't have this tool!");
+            }
+
+            if(request.StartDate > tool.AvailableUntil || request.EndDate > tool.AvailableUntil)
+            {
+                return Result<ToolUnavailabilityResponse>.Failure("You have to change availability of the tool!");
+            }
+
+            bool isOverlapping = await context.ToolUnavailabilities.AnyAsync(x => x.ToolId == request.ToolId && x.StartDate <= request.EndDate && x.EndDate >= request.StartDate);
+            if(isOverlapping)
+            {
+                return Result<ToolUnavailabilityResponse>.Failure("You have already selected this period!");
+            }
+
+            var toolUnavailability = new ToolUnavailability
+            {
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
+                ToolId = request.ToolId,
+            };
+            context.ToolUnavailabilities.Add(toolUnavailability);
+            await context.SaveChangesAsync();
+
+            var response = new ToolUnavailabilityResponse
+            {
+                Id = toolUnavailability.Id,
+                StartDate = toolUnavailability.StartDate,
+                EndDate = toolUnavailability.EndDate,
+                ToolId = toolUnavailability.ToolId,
+            };
+            return Result<ToolUnavailabilityResponse>.Success(response);
+        }
+    }
+}
