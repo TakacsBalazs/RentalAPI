@@ -25,6 +25,9 @@ namespace Rental.API.Models
         public Category Category { get; set; }
 
         public DateOnly AvailableUntil { get; set; }
+
+        public ICollection<ToolUnavailability> ToolUnavailabilities { get; set; }
+
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }
