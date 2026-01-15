@@ -46,5 +46,18 @@ namespace Rental.API.Controllers
             }
             return Ok("Successful delete!");
         }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetAllByToolId([FromQuery] GetToolUnavailabilitiesRequest request)
+        {
+            var result = await toolUnavailabilityService.GetToolUnavailabilitiesAsync(request);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok(result.Data);
+        }
     }
 }
