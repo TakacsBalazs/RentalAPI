@@ -13,6 +13,7 @@ namespace Rental.API.Models.Responses
         public string Location { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public Category Category { get; set; }
+        public DateOnly AvailableUntil { get; set; }
         public UserDto User { get; set; }
     }
 }

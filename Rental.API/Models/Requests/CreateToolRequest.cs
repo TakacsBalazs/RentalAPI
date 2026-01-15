@@ -12,5 +12,7 @@
         public string Location { get; set; } = string.Empty;
         public Category Category { get; set; }
 
+        public DateOnly AvailableUntil { get; set; }
+
     }
 }

@@ -38,7 +38,8 @@ namespace Rental.API.Services
                 SecurityDeposit = request.SecurityDeposit,
                 Description = request.Description,
                 Category = request.Category,
-                Location = request.Location
+                Location = request.Location,
+                AvailableUntil = request.AvailableUntil    
             };
 
             context.Tools.Add(tool);
@@ -56,6 +57,7 @@ namespace Rental.API.Services
                 Location = tool.Location,
                 DailyPrice = tool.DailyPrice,
                 SecurityDeposit = tool.SecurityDeposit,
+                AvailableUntil = tool.AvailableUntil,
                 User = new UserDto
                 {
                     Id = userId,
@@ -85,6 +87,7 @@ namespace Rental.API.Services
                 Location = x.Location,
                 DailyPrice = x.DailyPrice,
                 SecurityDeposit = x.SecurityDeposit,
+                AvailableUntil = x.AvailableUntil,
                 User = new UserDto
                 {
                     Id = x.User.Id,
@@ -112,6 +115,7 @@ namespace Rental.API.Services
                 Location = tool.Location,
                 DailyPrice = tool.DailyPrice,
                 SecurityDeposit = tool.SecurityDeposit,
+                AvailableUntil = tool.AvailableUntil,
                 User = new UserDto
                 {
                     Id = tool.User.Id,

@@ -36,6 +36,7 @@ namespace Rental.API.Data
                 entity.Property(x => x.Description).IsRequired().HasMaxLength(1000);
                 entity.Property(x => x.Category).IsRequired().HasConversion<string>();
                 entity.Property(x => x.Location).IsRequired().HasMaxLength(200);
+                entity.Property(x => x.AvailableUntil).IsRequired().HasDefaultValueSql("CAST(GETUTCDATE() AS DATE)");
 
                 entity.HasOne(x => x.User).WithMany(x => x.Tools).HasForeignKey(x => x.UserId);
             });

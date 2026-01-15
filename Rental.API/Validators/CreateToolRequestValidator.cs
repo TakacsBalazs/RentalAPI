@@ -14,7 +14,7 @@ namespace Rental.API.Validators
             RuleFor(x => x.SecurityDeposit).NotEmpty().GreaterThan(0).PrecisionScale(18, 2, true);
             RuleFor(x => x.Location).NotEmpty().MaximumLength(200);
             RuleFor(x => x.Category).NotEmpty().IsInEnum();
-
+            RuleFor(x => x.AvailableUntil).NotEmpty().GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow));
         }
 
     }

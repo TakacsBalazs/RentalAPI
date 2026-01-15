@@ -23,6 +23,8 @@ namespace Rental.API.Models
         public User User { get; set; }
 
         public Category Category { get; set; }
+
+        public DateOnly AvailableUntil { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }
