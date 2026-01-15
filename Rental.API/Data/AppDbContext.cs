@@ -13,6 +13,7 @@ namespace Rental.API.Data
         }
 
         public DbSet<Tool> Tools { get; set; }
+        public DbSet<ToolUnavailability> ToolUnavailabilities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -41,6 +42,15 @@ namespace Rental.API.Data
                 entity.HasOne(x => x.User).WithMany(x => x.Tools).HasForeignKey(x => x.UserId);
             });
             builder.Entity<Tool>().HasQueryFilter(x => !x.IsDeleted);
+
+            builder.Entity<ToolUnavailability>(entity =>
+            {
+                entity.Property(x => x.StartDate).IsRequired();
+                entity.Property(x => x.EndDate).IsRequired();
+                entity.Property(x => x.ToolId).IsRequired();
+
+                entity.HasOne(x => x.Tool).WithMany(x => x.ToolUnavailabilities).HasForeignKey(x => x.ToolId).OnDelete(DeleteBehavior.Cascade);
+            });
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
