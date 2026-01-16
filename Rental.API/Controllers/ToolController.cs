@@ -37,6 +37,24 @@ namespace Rental.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllTool([FromQuery] GetToolsRequest request)
         {
+            request.IsActive = true;
+            var result = await toolService.GetAllToolAsync(request);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
+
+        [Authorize]
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetAllMyTool()
+        {
+            var request = new GetToolsRequest {
+                IsActive = null,
+                UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            };
+
             var result = await toolService.GetAllToolAsync(request);
             if (!result.IsSuccess)
             {
@@ -49,7 +67,8 @@ namespace Rental.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetToolById(int id)
         {
-            var result = await toolService.GetToolByIdAsync(id);
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await toolService.GetToolByIdAsync(id, userId);
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Errors);

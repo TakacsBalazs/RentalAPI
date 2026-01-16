@@ -75,7 +75,12 @@ namespace Rental.API.Services
             if (!string.IsNullOrEmpty(request.UserId))
             {
                 tools = tools.Where(x => x.UserId == request.UserId);
-            }   
+            }
+
+            if(request.IsActive != null)
+            {
+                tools = tools.Where(x => x.IsActive == request.IsActive);
+            }
                     
             var response = await tools.Select(x => new ToolResponse
             {
@@ -98,13 +103,19 @@ namespace Rental.API.Services
             return Result<IEnumerable<ToolResponse>>.Success(response);
         }
 
-        public async Task<Result<ToolResponse>> GetToolByIdAsync(int id)
+        public async Task<Result<ToolResponse>> GetToolByIdAsync(int id, string userId)
         {
             var tool = await context.Tools.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
             if(tool == null)
             {
                 return Result<ToolResponse>.Failure("Invalid id!");
             }
+
+            if(tool.UserId != userId && !tool.IsActive)
+            {
+                return Result<ToolResponse>.Failure("Invalid id!");
+            }
+
             var response = new ToolResponse
             {
                 Id = tool.Id,

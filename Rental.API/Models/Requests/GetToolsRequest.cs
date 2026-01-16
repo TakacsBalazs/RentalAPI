@@ -3,5 +3,7 @@
     public class GetToolsRequest
     {
         public string UserId { get; set; } = string.Empty;
+
+        public bool? IsActive { get; set; }
     }
 }
