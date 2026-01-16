@@ -11,6 +11,6 @@ namespace Rental.API.Services
 
         Task<Result> DeleteToolUnavailabilityAsync(int toolUnavailabilityId, string userId);
 
-        Task<Result<IEnumerable<ToolUnavailabilityResponse>>> GetToolUnavailabilitiesAsync(GetToolUnavailabilitiesRequest request);
+        Task<Result<IEnumerable<ToolUnavailabilityResponse>>> GetToolUnavailabilitiesAsync(GetToolUnavailabilitiesRequest request, string userId);
     }
 }

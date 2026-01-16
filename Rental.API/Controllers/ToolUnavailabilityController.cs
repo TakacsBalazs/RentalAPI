@@ -51,7 +51,8 @@ namespace Rental.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllByToolId([FromQuery] GetToolUnavailabilitiesRequest request)
         {
-            var result = await toolUnavailabilityService.GetToolUnavailabilitiesAsync(request);
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await toolUnavailabilityService.GetToolUnavailabilitiesAsync(request, userId);
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Errors);

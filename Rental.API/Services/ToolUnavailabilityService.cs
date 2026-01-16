@@ -88,12 +88,24 @@ namespace Rental.API.Services
             return Result.Success();
         }
 
-        public async Task<Result<IEnumerable<ToolUnavailabilityResponse>>> GetToolUnavailabilitiesAsync(GetToolUnavailabilitiesRequest request)
+        public async Task<Result<IEnumerable<ToolUnavailabilityResponse>>> GetToolUnavailabilitiesAsync(GetToolUnavailabilitiesRequest request, string userId)
         {
             var validate = await serviceProvider.ValidateRequestAsync<GetToolUnavailabilitiesRequest>(request);
             if (!validate.IsSuccess)
             {
                 return Result<IEnumerable<ToolUnavailabilityResponse>>.Failure(validate.Errors);
+            }
+
+            var toolInfo = await context.Tools.Select(x => new {x.Id, x.UserId, x.IsActive }).FirstOrDefaultAsync(x => x.Id == request.ToolId);
+
+            if (toolInfo == null)
+            {
+                return Result<IEnumerable<ToolUnavailabilityResponse>>.Failure("Invalid Tool Id!");
+            }
+
+            if (toolInfo.UserId != userId && !toolInfo.IsActive)
+            {
+                return Result<IEnumerable<ToolUnavailabilityResponse>>.Failure("Invalid Tool Id!");
             }
 
             var toolUnavailibilities = context.ToolUnavailabilities
