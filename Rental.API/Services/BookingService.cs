@@ -211,5 +211,54 @@ namespace Rental.API.Services
             };
             return Result<BookingDetailResponse>.Success(response);
         }
+
+        public async Task<Result<IEnumerable<BookingResponse>>> GetAllBookingsByToolAsync(GetToolBookingRequest request, string userId)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<GetToolBookingRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result<IEnumerable<BookingResponse>>.Failure(validate.Errors);
+            }
+
+            var tool = await context.Tools.FindAsync(request.ToolId);
+            if(tool == null)
+            {
+                return Result<IEnumerable<BookingResponse>>.Failure("Invalid Tool Id!");
+            }
+
+            if(tool.UserId !=  userId)
+            {
+                return Result<IEnumerable<BookingResponse>>.Failure("Can't see these bookings!");
+            }
+
+            var response = await context.Bookings.Where(x => x.ToolId == request.ToolId).Select(x => new BookingResponse
+            {
+                Id = x.Id,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Status = x.Status,
+                TotalPrice = x.TotalPrice,
+                SecurityDeposit = x.SecurityDeposit,
+                CreatedAt = x.CreatedAt,
+                Tool = new ToolDto
+                {
+                    Id = tool.Id,
+                    Name = tool.Name,
+                    Description = tool.Description,
+                    DailyPrice = tool.DailyPrice,
+                    SecurityDeposit = tool.SecurityDeposit,
+                    Location = tool.Location,
+                    IsActive = tool.IsActive,
+                    Category = tool.Category,
+                    AvailableUntil = tool.AvailableUntil,
+                },
+                Renter = new UserDto
+                {
+                    Id = x.Renter.Id,
+                    FullName = x.Renter.FullName
+                }
+            }).ToListAsync();
+            return Result<IEnumerable<BookingResponse>>.Success(response);
+        }
     }
 }
