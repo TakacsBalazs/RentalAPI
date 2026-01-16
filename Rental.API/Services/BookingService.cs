@@ -99,7 +99,34 @@ namespace Rental.API.Services
             };
 
             return Result<BookingResponse>.Success(response);
+        }
 
+        public async Task<Result<IEnumerable<BookingResponse>>> GetAllBookedToolsAsync(string renterId)
+        {
+            var response = await context.Bookings.Where(x => x.RenterId == renterId).Select(x => new BookingResponse
+            {
+                Id = x.Id,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Status = x.Status,
+                TotalPrice = x.TotalPrice,
+                SecurityDeposit = x.SecurityDeposit,
+                CreatedAt = x.CreatedAt,
+                Tool = new ToolDto
+                {
+                    Id = x.Tool.Id,
+                    Name = x.Tool.Name,
+                    Description = x.Tool.Description,
+                    DailyPrice = x.Tool.DailyPrice,
+                    SecurityDeposit = x.Tool.SecurityDeposit,
+                    Location = x.Tool.Location,
+                    IsActive = x.Tool.IsActive,
+                    Category = x.Tool.Category,
+                    AvailableUntil = x.Tool.AvailableUntil,
+                },
+                Renter = null
+            }).ToListAsync();
+            return Result<IEnumerable<BookingResponse>>.Success(response);
         }
     }
 }
