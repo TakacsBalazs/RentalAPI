@@ -160,5 +160,56 @@ namespace Rental.API.Services
             }).ToListAsync();
             return Result<IEnumerable<BookingResponse>>.Success(response);
         }
+
+        public async Task<Result<BookingDetailResponse>> GetBookingById(int id, string userId)
+        {
+            var book = await context.Bookings.Include(x => x.Renter).Include(x => x.Tool).ThenInclude(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
+            if (book == null)
+            {
+                return Result<BookingDetailResponse>.Failure("Invalid Id!");
+            }
+
+            bool isRenter = book.RenterId == userId;
+            bool isOwner = book.Tool.UserId == userId;
+            if (!isRenter && !isOwner)
+            {
+                return Result<BookingDetailResponse>.Failure("Can't see this booking!");
+            }
+
+            var response = new BookingDetailResponse
+            {
+                Id = book.Id,
+                StartDate = book.StartDate,
+                EndDate = book.EndDate,
+                Status = book.Status,
+                TotalPrice = book.TotalPrice,
+                SecurityDeposit = book.SecurityDeposit,
+                CreatedAt = book.CreatedAt,
+                Tool = new ToolDto
+                {
+                    Id = book.Tool.Id,
+                    Name = book.Tool.Name,
+                    Description = book.Tool.Description,
+                    DailyPrice = book.Tool.DailyPrice,
+                    SecurityDeposit = book.Tool.SecurityDeposit,
+                    Location = book.Tool.Location,
+                    IsActive = book.Tool.IsActive,
+                    Category = book.Tool.Category,
+                    AvailableUntil = book.Tool.AvailableUntil,
+                },
+                Renter = new UserDto
+                {
+                    Id = book.Renter.Id,
+                    FullName = book.Renter.FullName
+                },
+                Owner = new UserDto
+                {
+                    Id = book.Tool.User.Id,
+                    FullName = book.Tool.User.FullName
+                },
+                AmIOwner = isOwner
+            };
+            return Result<BookingDetailResponse>.Success(response);
+        }
     }
 }
