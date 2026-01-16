@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Rental.API.Models;
 using Rental.API.Models.Requests;
 using Rental.API.Services;
 using System.Security.Claims;
@@ -83,6 +85,18 @@ namespace Rental.API.Controllers
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await toolService.UpdateToolAsync(request, id, userId);
             if(!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
+
+        [Authorize]
+        [HttpGet("{id}/calendar")]
+        public async Task<IActionResult> GetToolCalendar(int id)
+        {
+            var result = await toolService.GetToolCalendarAsync(id);
+            if (!result.IsSuccess)
             {
                 return BadRequest(result.Errors);
             }
