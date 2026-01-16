@@ -14,5 +14,7 @@ namespace Rental.API.Services
         Task<Result<ToolResponse>> GetToolByIdAsync(int id, string userId);
 
         Task<Result<ToolResponse>> UpdateToolAsync(UpdateToolRequest request,int id, string userId);
+
+        Task<Result<IEnumerable<CalendarResponse>>> GetToolCalendarAsync(int toolId);
     }
 }
