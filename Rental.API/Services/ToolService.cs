@@ -125,5 +125,56 @@ namespace Rental.API.Services
 
             return Result<ToolResponse>.Success(response);
         }
+
+        public async Task<Result<ToolResponse>> UpdateToolAsync(UpdateToolRequest request, int id, string userId)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<UpdateToolRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result<ToolResponse>.Failure(validate.Errors);
+            }
+
+            var tool = await context.Tools.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
+            if (tool == null)
+            {
+                return Result<ToolResponse>.Failure("Invalid id!");
+            }
+
+            if(tool.UserId != userId)
+            {
+                return Result<ToolResponse>.Failure("You are not the owner of this tool!");
+            }
+
+            tool.Name = request.Name;
+            tool.IsActive = request.IsActive!.Value;
+            tool.Description = request.Description;
+            tool.DailyPrice = request.DailyPrice;
+            tool.SecurityDeposit = request.SecurityDeposit;
+            tool.AvailableUntil = request.AvailableUntil;
+            tool.Category = request.Category;
+            tool.Location = request.Location;
+
+            await context.SaveChangesAsync();
+
+            var response = new ToolResponse
+            {
+                Id = tool.Id,
+                Name = tool.Name,
+                IsActive = tool.IsActive,
+                Description = tool.Description,
+                Category = tool.Category,
+                Location = tool.Location,
+                DailyPrice = tool.DailyPrice,
+                SecurityDeposit = tool.SecurityDeposit,
+                AvailableUntil = tool.AvailableUntil,
+                User = new UserDto
+                {
+                    Id = tool.User.Id,
+                    FullName = tool.User.FullName
+                }
+            };
+
+            return Result<ToolResponse>.Success(response);
+        }
     }
 }
