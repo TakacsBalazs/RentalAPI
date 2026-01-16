@@ -28,6 +28,8 @@ namespace Rental.API.Models
 
         public ICollection<ToolUnavailability> ToolUnavailabilities { get; set; }
 
+        public ICollection<Booking> Bookings { get; set; }
+
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }

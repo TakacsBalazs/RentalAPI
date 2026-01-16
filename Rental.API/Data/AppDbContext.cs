@@ -14,6 +14,7 @@ namespace Rental.API.Data
 
         public DbSet<Tool> Tools { get; set; }
         public DbSet<ToolUnavailability> ToolUnavailabilities { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -50,6 +51,23 @@ namespace Rental.API.Data
                 entity.Property(x => x.ToolId).IsRequired();
 
                 entity.HasOne(x => x.Tool).WithMany(x => x.ToolUnavailabilities).HasForeignKey(x => x.ToolId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Booking>(entity =>
+            {
+                entity.Property(x => x.StartDate).IsRequired();
+                entity.Property(x => x.EndDate).IsRequired();
+                entity.Property(x => x.Status).IsRequired().HasConversion<string>();
+                entity.Property(x => x.ToolId).IsRequired();
+                entity.Property(x => x.RenterId).IsRequired();
+                entity.Property(x => x.TotalPrice).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(x => x.SecurityDeposit).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(x => x.CreatedAt).IsRequired();
+
+                entity.HasQueryFilter(x => !x.IsDeleted);
+
+                entity.HasOne(x => x.Renter).WithMany(x => x.Bookings).HasForeignKey(x => x.RenterId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Tool).WithMany(x => x.Bookings).HasForeignKey(x => x.ToolId).OnDelete(DeleteBehavior.Restrict);
             });
         }
 
