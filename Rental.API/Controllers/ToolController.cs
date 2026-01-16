@@ -56,5 +56,18 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTool([FromBody] UpdateToolRequest request, int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await toolService.UpdateToolAsync(request, id, userId);
+            if(!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
