@@ -34,6 +34,19 @@ namespace Rental.API.Controllers
         }
 
         [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetAllBookingsByTool([FromQuery] GetToolBookingRequest request)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await bookingService.GetAllBookingsByToolAsync(request, userId);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
+
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBookingById(int id)
         {
