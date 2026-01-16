@@ -44,5 +44,18 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpGet("incoming")]
+        public async Task<IActionResult> GetAllOwnerBookings()
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await bookingService.GetAllOwnerBookingsAsync(userId);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
