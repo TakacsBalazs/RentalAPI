@@ -45,6 +45,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IToolService, ToolService>();
 builder.Services.AddScoped<IToolUnavailabilityService, ToolUnavailabilityService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 builder.Services.AddAuthentication(options =>
 {
