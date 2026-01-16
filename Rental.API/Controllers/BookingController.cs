@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Rental.API.Models;
 using Rental.API.Models.Requests;
 using Rental.API.Services;
 using System.Security.Claims;
@@ -25,6 +26,19 @@ namespace Rental.API.Controllers
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await bookingService.CreateBookingAsync(request, userId);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
+
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBookingById(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await bookingService.GetBookingById(id, userId);
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Errors);
