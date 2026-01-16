@@ -8,5 +8,7 @@ namespace Rental.API.Services
     public interface IBookingService
     {
         Task<Result<BookingResponse>> CreateBookingAsync(CreateBookingRequest request, string renterId);
+
+        Task<Result<IEnumerable<BookingResponse>>> GetAllBookedToolsAsync(string renterId);
     }
 }
