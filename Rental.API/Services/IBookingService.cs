@@ -12,5 +12,7 @@ namespace Rental.API.Services
         Task<Result<IEnumerable<BookingResponse>>> GetAllBookedToolsAsync(string renterId);
 
         Task<Result<IEnumerable<BookingResponse>>> GetAllOwnerBookingsAsync(string ownerId);
+
+        Task<Result<BookingDetailResponse>> GetBookingById(int id, string userId);
     }
 }
