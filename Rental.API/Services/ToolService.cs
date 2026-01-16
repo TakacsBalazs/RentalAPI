@@ -187,5 +187,29 @@ namespace Rental.API.Services
 
             return Result<ToolResponse>.Success(response);
         }
+
+        public async Task<Result<IEnumerable<CalendarResponse>>> GetToolCalendarAsync(int toolId)
+        {
+            bool exists = await context.Tools.AnyAsync(x => x.Id == toolId && x.IsActive);
+            if (!exists)
+            {
+                return Result<IEnumerable<CalendarResponse>>.Failure("Invalid Tool Id!");
+            }
+
+            var bookings = await context.Bookings.Where(x => x.ToolId == toolId && x.Status != BookingStatus.CancelledByRenter && x.Status != BookingStatus.CancelledByOwner).Select(x => new CalendarResponse
+            {
+                StartDate = x.StartDate, 
+                EndDate = x.EndDate
+            }).ToListAsync();
+
+            var unavailabilities = await context.ToolUnavailabilities.Where(x => x.ToolId == toolId).Select(x => new CalendarResponse
+            {
+                StartDate = x.StartDate,
+                EndDate = x.EndDate
+            }).ToListAsync();
+
+            var calendar = bookings.Concat(unavailabilities).OrderBy(x => x.StartDate).ToList();
+            return Result<IEnumerable<CalendarResponse>>.Success(calendar);
+        }
     }
 }
