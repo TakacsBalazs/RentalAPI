@@ -66,6 +66,7 @@ namespace Rental.API.Data
                 entity.Property(x => x.PickupCode).IsRequired().HasDefaultValue(0);
                 entity.Property(x => x.FailedPickupAttempts).IsRequired().HasDefaultValue(0);
                 entity.Property(x => x.IsLocked).IsRequired().HasDefaultValue(false);
+                entity.Property(x => x.OriginalEndDate).IsRequired(false);
 
                 entity.HasQueryFilter(x => !x.IsDeleted);
 
