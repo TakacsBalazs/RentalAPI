@@ -314,5 +314,42 @@ namespace Rental.API.Services
             await context.SaveChangesAsync();
             return Result.Success();
         }
+
+        public async Task<Result> DeleteBookingByIdAsync(int id, string userId)
+        {
+            var booking = await context.Bookings.Include(x => x.Tool).FirstOrDefaultAsync(x => x.Id == id);
+            if(booking == null)
+            {
+                return Result.Failure("Invalid Booking Id!");
+            }
+
+            bool isRenter = booking.RenterId == userId;
+            bool isOwner = booking.Tool.UserId == userId;
+            if(!isOwner && !isRenter)
+            {
+                return Result.Failure("Can't remove this booking!");
+            }
+
+            if(booking.Status != BookingStatus.Reserved)
+            {
+                return Result.Failure("Can't cancel this booking!");
+            }
+
+            if(DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1) >= booking.StartDate)
+            {
+                return Result.Failure("Can't cancel this booking anymore!");
+            }
+
+            if (isOwner)
+            {
+                booking.Status = BookingStatus.CancelledByOwner;
+            } else if (isRenter)
+            {
+                booking.Status = BookingStatus.CancelledByRenter;
+            }
+            context.Bookings.Remove(booking);
+            await context.SaveChangesAsync();
+            return Result.Success();
+        }
     }
 }
