@@ -110,5 +110,18 @@ namespace Rental.API.Controllers
             }
             return Ok("Successful cancel!");
         }
+
+        [Authorize]
+        [HttpPost("{id}/complete")]
+        public async Task<IActionResult> CompleteTheBooking(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await bookingService.CompleteTheBookingAsync(id, userId);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok("Successful complete!");
+        }
     }
 }
