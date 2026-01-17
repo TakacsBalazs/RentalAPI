@@ -18,5 +18,7 @@ namespace Rental.API.Services
         Task<Result<IEnumerable<BookingResponse>>> GetAllBookingsByToolAsync(GetToolBookingRequest request, string userId);
 
         Task<Result> StartTheBookingAsync(int id, string userId, StartBookingRequest request);
+
+        Task<Result> DeleteBookingByIdAsync(int id, string userId);
     }
 }
