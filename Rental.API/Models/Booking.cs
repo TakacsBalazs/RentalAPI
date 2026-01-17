@@ -17,6 +17,7 @@ namespace Rental.API.Models
         public int PickupCode { get; set; }
         public int FailedPickupAttempts { get; set; } = 0;
         public bool IsLocked { get; set; } = false;
+        public DateOnly? OriginalEndDate { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
