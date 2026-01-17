@@ -84,5 +84,18 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpPost("{id}/start")]
+        public async Task<IActionResult> StartTheBooking(StartBookingRequest request, int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await bookingService.StartTheBookingAsync(id, userId, request);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok("Successful booking start!");
+        }
     }
 }
