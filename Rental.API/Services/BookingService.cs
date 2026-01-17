@@ -351,5 +351,35 @@ namespace Rental.API.Services
             await context.SaveChangesAsync();
             return Result.Success();
         }
+
+        public async Task<Result> CompleteTheBookingAsync(int id, string userId)
+        {
+            var booking = await context.Bookings.Include(x => x.Tool).FirstOrDefaultAsync(x => x.Id == id);
+            if(booking == null)
+            {
+                return Result.Failure("Invalid Booking Id!");
+            }
+
+            if(booking.Tool.UserId != userId)
+            {
+                return Result.Failure("Can't complete this booking!");
+            }
+
+            if(booking.Status != BookingStatus.Active)
+            {
+                return Result.Failure("Booking isn't active!");
+            }
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (today < booking.EndDate)
+            {
+                booking.OriginalEndDate = booking.EndDate;
+                booking.EndDate = today;
+            }
+            booking.Status = BookingStatus.Completed;
+            booking.ReturnDate = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+            return Result.Success();
+        }
     }
 }
