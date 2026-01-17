@@ -62,7 +62,7 @@ namespace Rental.API.Services
                 return Result<BookingResponse>.Failure("Can't book this period, because other user booked");
             }
 
-            var booking = new Booking{ 
+            var booking = new Booking {
                 ToolId = tool.Id,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
@@ -70,6 +70,7 @@ namespace Rental.API.Services
                 Status = BookingStatus.Reserved,
                 TotalPrice = ((request.EndDate.DayNumber - request.StartDate.DayNumber) + 1) * tool.DailyPrice,
                 SecurityDeposit = tool.SecurityDeposit,
+                PickupCode = Random.Shared.Next(1000, 9999)
 
             };
             context.Bookings.Add(booking);
@@ -207,7 +208,8 @@ namespace Rental.API.Services
                     Id = book.Tool.User.Id,
                     FullName = book.Tool.User.FullName
                 },
-                AmIOwner = isOwner
+                AmIOwner = isOwner,
+                PickupCode = isRenter ? book.PickupCode : null
             };
             return Result<BookingDetailResponse>.Success(response);
         }
@@ -259,6 +261,58 @@ namespace Rental.API.Services
                 }
             }).ToListAsync();
             return Result<IEnumerable<BookingResponse>>.Success(response);
+        }
+
+        public async Task<Result> StartTheBookingAsync(int id, string userId, StartBookingRequest request)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<StartBookingRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result.Failure(validate.Errors);
+            }
+
+            var booking = await context.Bookings.Include(x => x.Tool).FirstOrDefaultAsync(x => x.Id == id);
+            if(booking == null)
+            {
+                return Result.Failure("Invalid Id!");
+            }
+
+            if (booking.IsLocked)
+            {
+                return Result.Failure("Locked booking, contact us!");
+            }
+
+            if(booking.Tool.UserId != userId)
+            {
+                return Result.Failure("Can't do this!");
+            }
+
+            if(booking.StartDate > DateOnly.FromDateTime(DateTime.UtcNow))
+            {
+                return Result.Failure("Can't start the booking yet!");
+            }
+
+            if(booking.Status != BookingStatus.Reserved)
+            {
+                return Result.Failure("Can't start the booking!");
+            }
+
+            if(booking.PickupCode != request.PickupCode)
+            {
+                booking.FailedPickupAttempts++;
+                if(booking.FailedPickupAttempts >= 5)
+                {
+                    booking.IsLocked = true;
+                    await context.SaveChangesAsync();
+                    return Result.Failure("Locked!");
+                }
+                await context.SaveChangesAsync();
+                return Result.Failure($"{5-booking.FailedPickupAttempts} tries left!");
+            }
+
+            booking.Status = BookingStatus.Active;
+            await context.SaveChangesAsync();
+            return Result.Success();
         }
     }
 }
