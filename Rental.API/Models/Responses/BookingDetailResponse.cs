@@ -7,5 +7,7 @@ namespace Rental.API.Models.Responses
         public bool AmIOwner { get; set; }
 
         public UserDto Owner { get; set; }
+
+        public int? PickupCode { get; set; }
     }
 }
