@@ -63,6 +63,9 @@ namespace Rental.API.Data
                 entity.Property(x => x.TotalPrice).IsRequired().HasColumnType("decimal(18,2)");
                 entity.Property(x => x.SecurityDeposit).IsRequired().HasColumnType("decimal(18,2)");
                 entity.Property(x => x.CreatedAt).IsRequired();
+                entity.Property(x => x.PickupCode).IsRequired().HasDefaultValue(0);
+                entity.Property(x => x.FailedPickupAttempts).IsRequired().HasDefaultValue(0);
+                entity.Property(x => x.IsLocked).IsRequired().HasDefaultValue(false);
 
                 entity.HasQueryFilter(x => !x.IsDeleted);
 
