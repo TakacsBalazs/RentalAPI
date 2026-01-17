@@ -97,5 +97,18 @@ namespace Rental.API.Controllers
             }
             return Ok("Successful booking start!");
         }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBookingById(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await bookingService.DeleteBookingByIdAsync(id, userId);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok("Successful cancel!");
+        }
     }
 }
