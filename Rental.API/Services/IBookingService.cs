@@ -20,5 +20,7 @@ namespace Rental.API.Services
         Task<Result> StartTheBookingAsync(int id, string userId, StartBookingRequest request);
 
         Task<Result> DeleteBookingByIdAsync(int id, string userId);
+
+        Task<Result> CompleteTheBookingAsync(int id, string userId);
     }
 }
