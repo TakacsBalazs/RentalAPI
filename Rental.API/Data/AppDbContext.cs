@@ -15,6 +15,8 @@ namespace Rental.API.Data
         public DbSet<Tool> Tools { get; set; }
         public DbSet<ToolUnavailability> ToolUnavailabilities { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -73,6 +75,34 @@ namespace Rental.API.Data
 
                 entity.HasOne(x => x.Renter).WithMany(x => x.Bookings).HasForeignKey(x => x.RenterId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(x => x.Tool).WithMany(x => x.Bookings).HasForeignKey(x => x.ToolId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<Conversation>(entity =>
+            {
+                entity.Property(x => x.User1Id).IsRequired();
+                entity.Property(x => x.User2Id).IsRequired();
+                entity.Property(x => x.LastMessageAt).IsRequired();
+
+                entity.HasIndex(x => new {x.User1Id, x.User2Id}).IsUnique();
+
+                entity.HasQueryFilter(x => !x.IsDeleted);
+
+                entity.HasOne(x => x.User1).WithMany().HasForeignKey(x => x.User1Id).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.User2).WithMany().HasForeignKey(x => x.User2Id).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<Message>(entity =>
+            {
+                entity.Property(x => x.ConversationId).IsRequired();
+                entity.Property(x => x.SenderId).IsRequired();
+                entity.Property(x => x.Content).IsRequired();
+                entity.Property(x => x.IsRead).IsRequired();
+                entity.Property(x => x.CreatedAt).IsRequired();
+
+                entity.HasQueryFilter(x => !x.IsDeleted);
+
+                entity.HasOne(x => x.Conversation).WithMany(x => x.Messages).HasForeignKey(x => x.ConversationId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Sender).WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.Restrict);
             });
         }
 
