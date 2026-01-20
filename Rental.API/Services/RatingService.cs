@@ -78,5 +78,32 @@ namespace Rental.API.Services
             };
             return Result<RatingResponse>.Success(response);
         }
+
+        public async Task<Result<IEnumerable<RatingResponse>>> GetUserRatingsAsync(GetRatingsRequest request) {
+            var validate = await serviceProvider.ValidateRequestAsync<GetRatingsRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result<IEnumerable<RatingResponse>>.Failure(validate.Errors);
+            }
+            bool isRatedUserExist = await context.Users.AnyAsync(x => x.Id == request.RatedUserId);
+            if (!isRatedUserExist)
+            {
+                return Result<IEnumerable<RatingResponse>>.Failure("Invalid Rated User Id!");
+            }
+
+            var ratings = await context.Ratings.Include(x => x.RaterUser).Where(x => x.RatedUserId == request.RatedUserId).ToListAsync();
+            var response = await context.Ratings.Where(x => x.RatedUserId == request.RatedUserId).OrderByDescending(x => x.CreatedAt)
+                .Select(x => new RatingResponse
+                {
+                    RaterId = x.RaterUserId,
+                    RaterName = x.RaterUser.FullName ?? "Unknown",
+                    Rate = x.Rate,
+                    Comment = x.Comment,
+                    UpdatedAt = x.UpdatedAt,
+                    CreatedAt = x.CreatedAt
+                })
+                .ToListAsync();
+            return Result<IEnumerable<RatingResponse>>.Success(response);
+        }
     }
 }
