@@ -29,5 +29,17 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetUserRatingsAsync([FromQuery] GetRatingsRequest request)
+        {
+            var result = await ratingService.GetUserRatingsAsync(request);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
