@@ -105,5 +105,18 @@ namespace Rental.API.Services
                 .ToListAsync();
             return Result<IEnumerable<RatingResponse>>.Success(response);
         }
+
+        public async Task<Result> DeleteRatingAsync(string ratedId, string raterId)
+        {
+            var rating = await context.Ratings.FindAsync(ratedId, raterId);
+            if(rating == null)
+            {
+                return Result.Failure("Rating not found!");
+            }
+
+            context.Remove(rating);
+            await context.SaveChangesAsync();
+            return Result.Success();
+        }
     }
 }
