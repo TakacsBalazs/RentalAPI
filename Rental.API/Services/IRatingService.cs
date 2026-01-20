@@ -9,5 +9,7 @@ namespace Rental.API.Services
         Task<Result<RatingResponse>> CreateRatingAsync(CreateRatingRequest request, string raterId);
 
         Task<Result<IEnumerable<RatingResponse>>> GetUserRatingsAsync(GetRatingsRequest request);
+
+        Task<Result> DeleteRatingAsync(string ratedId, string raterId);
     }
 }
