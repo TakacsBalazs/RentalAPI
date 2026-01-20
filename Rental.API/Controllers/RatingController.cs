@@ -41,5 +41,18 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpDelete("{ratedUserId}")]
+        public async Task<IActionResult> DeleteRating(string ratedUserId)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await ratingService.DeleteRatingAsync(ratedUserId, userId);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok("Successful delete this rating!");
+        }
     }
 }
