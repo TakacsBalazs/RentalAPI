@@ -17,6 +17,7 @@ namespace Rental.API.Data
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Rating> Ratings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -103,6 +104,21 @@ namespace Rental.API.Data
 
                 entity.HasOne(x => x.Conversation).WithMany(x => x.Messages).HasForeignKey(x => x.ConversationId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(x => x.Sender).WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<Rating>(entity =>
+            {
+                entity.Property(x => x.RatedUserId).IsRequired();
+                entity.Property(x => x.RaterUserId).IsRequired();
+                entity.Property(x => x.Rate).IsRequired();
+                entity.Property(x => x.Comment).IsRequired(false);
+                entity.Property(x => x.UpdatedAt).IsRequired();
+                entity.Property(x => x.CreatedAt).IsRequired();
+
+                entity.HasKey(x => new {x.RatedUserId, x.RaterUserId});
+
+                entity.HasOne(x => x.RaterUser).WithMany().HasForeignKey(x => x.RaterUserId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.RatedUser).WithMany().HasForeignKey(x => x.RatedUserId).OnDelete(DeleteBehavior.NoAction);
             });
         }
 
