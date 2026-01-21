@@ -123,5 +123,18 @@ namespace Rental.API.Controllers
             }
             return Ok("Successful complete!");
         }
+
+        [Authorize]
+        [HttpPost("{id}/complete-with-damage")]
+        public async Task<IActionResult> ReportDamageCompleteTheBooking(int id, [FromBody] ReportDamageCompleteBookingRequest request)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await bookingService.ReportDamageCompleteBookingAsync(id, userId, request);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
