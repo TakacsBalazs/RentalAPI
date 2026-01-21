@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rental.API.Data;
 
@@ -11,9 +12,11 @@ using Rental.API.Data;
 namespace Rental.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260121142439_AddBalanceAndLockedBalanceToUsers")]
+    partial class AddBalanceAndLockedBalanceToUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -409,50 +412,6 @@ namespace Rental.API.Migrations
                     b.ToTable("ToolUnavailabilities");
                 });
 
-            modelBuilder.Entity("Rental.API.Models.Transaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BalanceSnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal>("LockedBalanceSnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Transactions");
-                });
-
             modelBuilder.Entity("Rental.API.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -694,24 +653,6 @@ namespace Rental.API.Migrations
                     b.Navigation("Tool");
                 });
 
-            modelBuilder.Entity("Rental.API.Models.Transaction", b =>
-                {
-                    b.HasOne("Rental.API.Models.Booking", "Booking")
-                        .WithMany()
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Rental.API.Models.User", "User")
-                        .WithMany("Transactions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Rental.API.Models.Conversation", b =>
                 {
                     b.Navigation("Messages");
@@ -729,8 +670,6 @@ namespace Rental.API.Migrations
                     b.Navigation("Bookings");
 
                     b.Navigation("Tools");
-
-                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }
