@@ -361,15 +361,37 @@ namespace Rental.API.Services
                 return Result.Failure("Can't cancel this booking anymore!");
             }
 
-            if (isOwner)
+            using var dbTransaction = await context.Database.BeginTransactionAsync();
+            try
             {
-                booking.Status = BookingStatus.CancelledByOwner;
-            } else if (isRenter)
-            {
-                booking.Status = BookingStatus.CancelledByRenter;
+                var paymentResult = await paymentService.CancellationUnlockBookingAmountAsync(booking.RenterId, (booking.TotalPrice + booking.SecurityDeposit), booking.Id);
+                if (!paymentResult.IsSuccess)
+                {
+                    return Result.Failure(paymentResult.Errors);
+                }
+
+                if (isOwner)
+                {
+                    booking.Status = BookingStatus.CancelledByOwner;
+                }
+                else if (isRenter)
+                {
+                    booking.Status = BookingStatus.CancelledByRenter;
+                }
+
+                booking.IsDeleted = true;
+                booking.DeletedAt = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
+                await dbTransaction.CommitAsync();
             }
-            context.Bookings.Remove(booking);
-            await context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+
+                await dbTransaction.RollbackAsync();
+                return Result.Failure("System error: " + ex.Message);
+            }
+
             return Result.Success();
         }
 
