@@ -13,11 +13,13 @@ namespace Rental.API.Services
     {
         private readonly AppDbContext context;
         private readonly IServiceProvider serviceProvider;
+        private readonly IPaymentService paymentService;
 
-        public BookingService(AppDbContext context, IServiceProvider serviceProvider)
+        public BookingService(AppDbContext context, IServiceProvider serviceProvider, IPaymentService paymentService)
         {
             this.context = context;
             this.serviceProvider = serviceProvider;
+            this.paymentService = paymentService;
         }
 
         public async Task<Result<BookingResponse>> CreateBookingAsync(CreateBookingRequest request, string renterId)
@@ -28,7 +30,7 @@ namespace Rental.API.Services
                 return Result<BookingResponse>.Failure(validate.Errors);
             }
 
-            var tool = await context.Tools.FirstOrDefaultAsync(x => x.Id == request.ToolId);
+            var tool = await context.Tools.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == request.ToolId);
             if (tool == null)
             {
                 return Result<BookingResponse>.Failure("Invalid Tool Id!");
@@ -73,8 +75,27 @@ namespace Rental.API.Services
                 PickupCode = Random.Shared.Next(1000, 9999)
 
             };
-            context.Bookings.Add(booking);
-            await context.SaveChangesAsync();
+
+            using var dbTransaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                context.Bookings.Add(booking);
+                await context.SaveChangesAsync();
+                decimal amount = booking.TotalPrice + booking.SecurityDeposit;
+
+                var paymentResult = await paymentService.LockBookingAmountAsync(renterId, amount, booking.Id);
+                if (!paymentResult.IsSuccess)
+                {
+                    return Result<BookingResponse>.Failure(paymentResult.Errors);
+                }
+
+                await dbTransaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await dbTransaction.RollbackAsync();
+                return Result<BookingResponse>.Failure("System error: " + ex.Message);
+            }
 
             var response = new BookingResponse {
                 Id = booking.Id,
