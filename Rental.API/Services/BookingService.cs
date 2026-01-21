@@ -442,5 +442,62 @@ namespace Rental.API.Services
             }
             return Result.Success();
         }
+
+        public async Task<Result<ReportDamageCompleteBookingResponse>> ReportDamageCompleteBookingAsync(int id, string userId, ReportDamageCompleteBookingRequest request)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<ReportDamageCompleteBookingRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result<ReportDamageCompleteBookingResponse>.Failure(validate.Errors);
+            }
+
+            var booking = await context.Bookings.Include(x => x.Tool).FirstOrDefaultAsync(x => x.Id == id);
+            if (booking == null)
+            {
+                return Result<ReportDamageCompleteBookingResponse>.Failure("Invalid Booking Id!");
+            }
+
+            if (booking.Tool.UserId != userId)
+            {
+                return Result<ReportDamageCompleteBookingResponse>.Failure("Can't complete this booking!");
+            }
+
+            if (booking.Status != BookingStatus.Active)
+            {
+                return Result<ReportDamageCompleteBookingResponse>.Failure("Booking isn't active!");
+            }
+
+            using var dbTransaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var paymentResult = await paymentService.ReportDamageCompleteBookingAmountAsync(booking.Tool.UserId, booking.RenterId, booking.TotalPrice,
+                    booking.SecurityDeposit, request.DamageAmount, request.DamageDescription, booking.Id);
+                if (!paymentResult.IsSuccess)
+                {
+                    return Result<ReportDamageCompleteBookingResponse>.Failure(paymentResult.Errors);
+                }
+
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                if (today < booking.EndDate)
+                {
+                    booking.OriginalEndDate = booking.EndDate;
+                    booking.EndDate = today;
+                }
+
+                booking.ClosingNote = request.DamageDescription;
+                booking.Status = BookingStatus.Completed;
+                booking.ReturnDate = DateTime.UtcNow;
+                await context.SaveChangesAsync();
+                await dbTransaction.CommitAsync();
+
+                return Result<ReportDamageCompleteBookingResponse>.Success(paymentResult.Data);
+            }
+            catch (Exception ex)
+            {
+                await dbTransaction.RollbackAsync();
+                return Result<ReportDamageCompleteBookingResponse>.Failure("System error: " + ex.Message);
+            }
+
+        }
     }
 }
