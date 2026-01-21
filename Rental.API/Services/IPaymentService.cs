@@ -7,5 +7,7 @@ namespace Rental.API.Services
         Task<Result> LockBookingAmountAsync(string userId, decimal amount, int bookingId);
 
         Task<Result> CancellationUnlockBookingAmountAsync(string userId, decimal amount, int bookingId);
+
+        Task<Result> CompleteBookingAmountAsync(string toolUserId, string renterId, decimal totalPrice, decimal securityDeposit, int bookingId);
     }
 }
