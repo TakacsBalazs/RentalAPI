@@ -13,6 +13,11 @@ namespace Rental.API.Models
 
         public ICollection<Booking> Bookings { get; set; }
 
+        public decimal Balance { get; set; } = 0;
+        public decimal LockedBalance { get; set; } = 0;
+
+        public ICollection<Transaction> Transactions { get; set; }
+
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }
