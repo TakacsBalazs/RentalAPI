@@ -18,6 +18,7 @@ namespace Rental.API.Data
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Rating> Ratings { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -28,6 +29,8 @@ namespace Rental.API.Data
                 entity.Property(x => x.FullName).IsRequired().HasMaxLength(100);
                 entity.Property(x => x.UserName).IsRequired().HasMaxLength(20);
                 entity.Property(x => x.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(x => x.Balance).IsRequired().HasDefaultValue(0).HasColumnType("decimal(18,2)");
+                entity.Property(x => x.LockedBalance).IsRequired().HasDefaultValue(0).HasColumnType("decimal(18,2)");
             });
             builder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
 
@@ -119,6 +122,21 @@ namespace Rental.API.Data
 
                 entity.HasOne(x => x.RaterUser).WithMany().HasForeignKey(x => x.RaterUserId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(x => x.RatedUser).WithMany().HasForeignKey(x => x.RatedUserId).OnDelete(DeleteBehavior.NoAction);
+            });
+
+            builder.Entity<Transaction>(entity =>
+            {
+                entity.Property(x => x.UserId).IsRequired();
+                entity.Property(x => x.Amount).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(x => x.Type).IsRequired();
+                entity.Property(x => x.CreatedAt).IsRequired();
+                entity.Property(x => x.Description).IsRequired().HasMaxLength(500);
+                entity.Property(x => x.BookingId).IsRequired(false);
+                entity.Property(x => x.BalanceSnapshot).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(x => x.LockedBalanceSnapshot).IsRequired().HasColumnType("decimal(18,2)");
+
+                entity.HasOne(x => x.User).WithMany(x => x.Transactions).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Booking).WithMany().HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.SetNull);
             });
         }
 
