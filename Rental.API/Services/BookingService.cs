@@ -413,15 +413,33 @@ namespace Rental.API.Services
                 return Result.Failure("Booking isn't active!");
             }
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            if (today < booking.EndDate)
+
+            using var dbTransaction = await context.Database.BeginTransactionAsync();
+            try
             {
-                booking.OriginalEndDate = booking.EndDate;
-                booking.EndDate = today;
+                var paymentResult = await paymentService.CompleteBookingAmountAsync(booking.Tool.UserId, booking.RenterId, booking.TotalPrice, booking.SecurityDeposit, booking.Id);
+                if(!paymentResult.IsSuccess)
+                {
+                    return Result.Failure(paymentResult.Errors);
+                }
+
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                if (today < booking.EndDate)
+                {
+                    booking.OriginalEndDate = booking.EndDate;
+                    booking.EndDate = today;
+                }
+                booking.Status = BookingStatus.Completed;
+                booking.ReturnDate = DateTime.UtcNow;
+                await context.SaveChangesAsync();
+                await dbTransaction.CommitAsync();
             }
-            booking.Status = BookingStatus.Completed;
-            booking.ReturnDate = DateTime.UtcNow;
-            await context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+
+                await dbTransaction.RollbackAsync();
+                return Result.Failure("System error: " + ex.Message);
+            }
             return Result.Success();
         }
     }
