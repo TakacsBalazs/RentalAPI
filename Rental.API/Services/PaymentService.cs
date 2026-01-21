@@ -131,5 +131,105 @@ namespace Rental.API.Services
 
             return Result.Success();
         }
+
+        public async Task<Result<ReportDamageCompleteBookingResponse>> ReportDamageCompleteBookingAmountAsync(string toolUserId, string renterId, decimal totalPrice, decimal securityDeposit, decimal damageAmount, string damageDescription, int bookingId)
+        {
+            var toolUser = await context.Users.FindAsync(toolUserId);
+            if (toolUser == null)
+            {
+                return Result<ReportDamageCompleteBookingResponse>.Failure("Invalid Tool User Id!");
+            }
+
+            var renter = await context.Users.FindAsync(renterId);
+            if (renter == null)
+            {
+                return Result<ReportDamageCompleteBookingResponse>.Failure("Invalid Renter Id!");
+            }
+
+            toolUser.Balance += totalPrice;
+            var toolUserTransaction = new Transaction
+            {
+                UserId = toolUserId,
+                Amount = totalPrice,
+                Type = TransactionType.RentalIncome,
+                BookingId = bookingId,
+                Description = $"Rental income booking payment (#{bookingId})",
+                BalanceSnapshot = toolUser.Balance,
+                LockedBalanceSnapshot = toolUser.LockedBalance
+            };
+            context.Transactions.Add(toolUserTransaction);
+
+            renter.LockedBalance -= totalPrice;
+            var renterFeePaymentTransaction = new Transaction
+            {
+                UserId = renterId,
+                Amount = totalPrice,
+                Type = TransactionType.RentalFeePayment,
+                BookingId = bookingId,
+                Description = $"Rental fee booking payment (#{bookingId})",
+                BalanceSnapshot = renter.Balance,
+                LockedBalanceSnapshot = renter.LockedBalance
+            };
+            context.Transactions.Add(renterFeePaymentTransaction);
+
+            decimal penaltyAmount = (securityDeposit - damageAmount) < 0 ? securityDeposit : damageAmount;
+
+            string cleanDesc = damageDescription.Length > 400 ? damageDescription.Substring(0, 400) + "..." : damageDescription;
+
+            toolUser.Balance += penaltyAmount;
+            var toolUserSecurityDespositRefundTransaction = new Transaction
+            {
+                UserId = toolUserId,
+                Amount = penaltyAmount,
+                Type = TransactionType.PenaltyIncome,
+                BookingId = bookingId,
+                Description = $"Rental penalty income booking payment (#{bookingId}): ({cleanDesc})",
+                BalanceSnapshot = toolUser.Balance,
+                LockedBalanceSnapshot = toolUser.LockedBalance
+            };
+            context.Transactions.Add(toolUserSecurityDespositRefundTransaction);
+
+
+            renter.LockedBalance -= penaltyAmount;
+            var renterDamagePenaltyTransaction = new Transaction
+            {
+                UserId = renterId,
+                Amount = penaltyAmount,
+                Type = TransactionType.DamagePenalty,
+                BookingId = bookingId,
+                Description = $"Rental damage penalty booking payment (#{bookingId}): ({cleanDesc})",
+                BalanceSnapshot = renter.Balance,
+                LockedBalanceSnapshot = renter.LockedBalance
+            };
+            context.Transactions.Add(renterDamagePenaltyTransaction);
+
+            if((securityDeposit - damageAmount) > 0)
+            {
+                decimal refund = securityDeposit - damageAmount;
+                renter.LockedBalance -= refund;
+                renter.Balance += refund;
+                var renterSecurityDespositRefundTransaction = new Transaction
+                {
+                    UserId = renterId,
+                    Amount = refund,
+                    Type = TransactionType.SecurityDepositRefund,
+                    BookingId = bookingId,
+                    Description = $"Rental security desposit refund booking payment (#{bookingId}): ({cleanDesc})",
+                    BalanceSnapshot = renter.Balance,
+                    LockedBalanceSnapshot = renter.LockedBalance
+                };
+                context.Transactions.Add(renterSecurityDespositRefundTransaction);
+            }
+
+            await context.SaveChangesAsync();
+
+            var response = new ReportDamageCompleteBookingResponse
+            {
+                PaidDamage = penaltyAmount,
+                RequestedDamage = damageAmount,
+                IsFullyCovered = damageAmount > securityDeposit ? false : true
+            };
+            return Result<ReportDamageCompleteBookingResponse>.Success(response);
+        }
     }
 }
