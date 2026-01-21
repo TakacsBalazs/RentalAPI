@@ -74,6 +74,7 @@ namespace Rental.API.Data
                 entity.Property(x => x.IsLocked).IsRequired().HasDefaultValue(false);
                 entity.Property(x => x.OriginalEndDate).IsRequired(false);
                 entity.Property(x => x.ReturnDate).IsRequired(false);
+                entity.Property(x => x.ClosingNote).IsRequired(false).HasMaxLength(1000);
 
                 entity.HasQueryFilter(x => !x.IsDeleted);
 
