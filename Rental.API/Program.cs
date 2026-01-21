@@ -48,6 +48,7 @@ builder.Services.AddScoped<IToolUnavailabilityService, ToolUnavailabilityService
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddAuthentication(options =>
 {
