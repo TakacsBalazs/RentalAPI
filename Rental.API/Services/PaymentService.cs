@@ -44,5 +44,33 @@ namespace Rental.API.Services
 
             return Result.Success();
         }
+
+        public async Task<Result> CancellationUnlockBookingAmountAsync(string userId, decimal amount, int bookingId)
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return Result.Failure("Invalid Renter User Id!");
+            }
+            
+            user.Balance += amount;
+            user.LockedBalance -= amount;
+
+            var transaction = new Transaction
+            {
+                UserId = userId,
+                Amount = amount,
+                Type = TransactionType.BookingCancellationUnlock,
+                BookingId = bookingId,
+                Description = $"Cancelation unlock booking payment (#{bookingId})",
+                BalanceSnapshot = user.Balance,
+                LockedBalanceSnapshot = user.LockedBalance
+            };
+            context.Transactions.Add(transaction);
+
+            await context.SaveChangesAsync();
+
+            return Result.Success();
+        }
     }
 }
