@@ -22,5 +22,7 @@ namespace Rental.API.Services
         Task<Result> DeleteBookingByIdAsync(int id, string userId);
 
         Task<Result> CompleteTheBookingAsync(int id, string userId);
+
+        Task<Result<ReportDamageCompleteBookingResponse>> ReportDamageCompleteBookingAsync(int id, string userId, ReportDamageCompleteBookingRequest request);
     }
 }
