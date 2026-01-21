@@ -72,5 +72,64 @@ namespace Rental.API.Services
 
             return Result.Success();
         }
+
+        public async Task<Result> CompleteBookingAmountAsync(string toolUserId, string renterId, decimal totalPrice, decimal securityDeposit, int bookingId)
+        {
+            var toolUser = await context.Users.FindAsync(toolUserId);
+            if(toolUser == null)
+            {
+                return Result.Failure("Invalid Tool User Id!");
+            }
+
+            var renter = await context.Users.FindAsync(renterId);
+            if(renter == null)
+            {
+                return Result.Failure("Invalid Renter Id!");
+            }
+
+            toolUser.Balance += totalPrice;
+            var toolUserTransaction = new Transaction
+            {
+                UserId = toolUserId,
+                Amount = totalPrice,
+                Type = TransactionType.RentalIncome,
+                BookingId = bookingId,
+                Description = $"Rental income booking payment (#{bookingId})",
+                BalanceSnapshot = toolUser.Balance,
+                LockedBalanceSnapshot = toolUser.LockedBalance
+            };
+            context.Transactions.Add(toolUserTransaction);
+
+            renter.LockedBalance -= totalPrice;
+            var renterFeePaymentTransaction = new Transaction
+            {
+                UserId = renterId,
+                Amount = totalPrice,
+                Type = TransactionType.RentalFeePayment,
+                BookingId = bookingId,
+                Description = $"Rental fee booking payment (#{bookingId})",
+                BalanceSnapshot = renter.Balance,
+                LockedBalanceSnapshot = renter.LockedBalance
+            };
+            context.Transactions.Add(renterFeePaymentTransaction);
+
+            renter.LockedBalance -= securityDeposit;
+            renter.Balance += securityDeposit;
+            var renterSecurityDespositRefundTransaction = new Transaction
+            {
+                UserId = renterId,
+                Amount = securityDeposit,
+                Type = TransactionType.SecurityDepositRefund,
+                BookingId = bookingId,
+                Description = $"Rental security desposit refund booking payment (#{bookingId})",
+                BalanceSnapshot = renter.Balance,
+                LockedBalanceSnapshot = renter.LockedBalance
+            };
+            context.Transactions.Add(renterSecurityDespositRefundTransaction);
+
+            await context.SaveChangesAsync();
+
+            return Result.Success();
+        }
     }
 }
