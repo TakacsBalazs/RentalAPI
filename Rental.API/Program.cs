@@ -49,6 +49,7 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 builder.Services.AddAuthentication(options =>
 {
