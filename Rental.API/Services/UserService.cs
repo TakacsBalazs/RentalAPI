@@ -60,5 +60,36 @@ namespace Rental.API.Services
             };
             return Result<PublicUserResponse>.Success(response);
         }
+
+        public async Task<Result<MyProfileResponse>> UpdateOwnProfileAsync(string userId, UpdateUserRequest request)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<UpdateUserRequest>(request);
+            if(!validate.IsSuccess)
+            {
+                return Result<MyProfileResponse>.Failure(validate.Errors);
+            }
+
+            var user = await context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return Result<MyProfileResponse>.Failure("Invalid User Id!");
+            }
+
+            user.FullName = request.FullName;
+            await context.SaveChangesAsync();
+
+            var response = new MyProfileResponse
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Username = user.UserName!,
+                CreatedAt = user.CreatedAt,
+                Email = user.Email!,
+                Balance = user.Balance,
+                LockedBalance = user.LockedBalance,
+            };
+
+            return Result<MyProfileResponse>.Success(response);
+        }
     }
 }
