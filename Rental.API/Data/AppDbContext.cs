@@ -31,6 +31,7 @@ namespace Rental.API.Data
                 entity.Property(x => x.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(x => x.Balance).IsRequired().HasDefaultValue(0).HasColumnType("decimal(18,2)");
                 entity.Property(x => x.LockedBalance).IsRequired().HasDefaultValue(0).HasColumnType("decimal(18,2)");
+                entity.Property(x => x.Description).IsRequired(false).HasMaxLength(1000);
             });
             builder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
 
