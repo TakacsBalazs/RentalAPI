@@ -7,6 +7,7 @@ namespace Rental.API.Validators
     {
         public UpdateUserRequestValidator() {
             RuleFor(x => x.FullName).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.Description).MaximumLength(1000);
         }
     }
 }
