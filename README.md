@@ -77,18 +77,25 @@ I separated the Database Entities from the API responses:
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/TakacsBalazs/RentalAPI.git
+cd RentalAPI/Rental.API
 ```
 
-### 2. Configure Database
+### 2. Install EF Core Tool
+This global tool is required to run database migrations.
+```bash
+dotnet tool install --global dotnet-ef
+```
+
+### 3. Configure Database
 Open `appsettings.json` and update the `DefaultConnection` string to point to your SQL Server instance.
 
-### 3. Apply Migrations
+### 4. Apply Migrations
 Initialize the database schema:
 ```bash
 dotnet ef database update
 ```
 
-### 4. Run the Application
+### 5. Run the Application
 ```bash
 dotnet run
 ```
