@@ -16,6 +16,8 @@ namespace Rental.API.Models
         public decimal Balance { get; set; } = 0;
         public decimal LockedBalance { get; set; } = 0;
 
+        public string? Description { get; set; }
+
         public ICollection<Transaction> Transactions { get; set; }
 
         public ICollection<Rating> ReceivedRatings { get; set; }
