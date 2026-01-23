@@ -38,5 +38,27 @@ namespace Rental.API.Services
 
             return Result<MyProfileResponse>.Success(response);
         }
+
+        public async Task<Result<PublicUserResponse>> GetUserByIdAsync(string userId)
+        {
+            var user = await context.Users.Include(x => x.ReceivedRatings).FirstOrDefaultAsync(x => x.Id == userId);
+            if (user == null)
+            {
+                return Result<PublicUserResponse>.Failure("Invalid User Id!");
+            }
+
+            int count = user.ReceivedRatings.Count();
+            double rate = count > 0 ? user.ReceivedRatings.Average(x => x.Rate) : 0;
+
+            var response = new PublicUserResponse
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                CreatedAt = user.CreatedAt,
+                RatersCount = user.ReceivedRatings.Count(),
+                Rate = rate
+            };
+            return Result<PublicUserResponse>.Success(response);
+        }
     }
 }
