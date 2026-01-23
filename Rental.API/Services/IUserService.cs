@@ -8,5 +8,6 @@ namespace Rental.API.Services
     {
         Task<Result<MyProfileResponse>> GetOwnProfileAsync(string userId);
         Task<Result<PublicUserResponse>> GetUserByIdAsync(string userId);
+        Task<Result<MyProfileResponse>> UpdateOwnProfileAsync(string userId, UpdateUserRequest request);
     }
 }
