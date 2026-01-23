@@ -18,6 +18,8 @@ namespace Rental.API.Models
 
         public ICollection<Transaction> Transactions { get; set; }
 
+        public ICollection<Rating> ReceivedRatings { get; set; }
+
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }
