@@ -32,6 +32,7 @@ namespace Rental.API.Services
                 Username = user.UserName!,
                 CreatedAt = user.CreatedAt,
                 Email = user.Email!,
+                Description = user.Description ?? string.Empty,
                 Balance = user.Balance,
                 LockedBalance = user.LockedBalance,
             };
@@ -55,6 +56,7 @@ namespace Rental.API.Services
                 Id = user.Id,
                 FullName = user.FullName,
                 CreatedAt = user.CreatedAt,
+                Description = user.Description ?? string.Empty,
                 RatersCount = user.ReceivedRatings.Count(),
                 Rate = rate
             };
@@ -76,6 +78,7 @@ namespace Rental.API.Services
             }
 
             user.FullName = request.FullName;
+            user.Description = string.IsNullOrWhiteSpace(request.Description) ? null: request.Description;
             await context.SaveChangesAsync();
 
             var response = new MyProfileResponse
@@ -85,6 +88,7 @@ namespace Rental.API.Services
                 Username = user.UserName!,
                 CreatedAt = user.CreatedAt,
                 Email = user.Email!,
+                Description = user.Description ?? string.Empty,
                 Balance = user.Balance,
                 LockedBalance = user.LockedBalance,
             };
