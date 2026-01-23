@@ -9,6 +9,7 @@ using Rental.API.Services;
 using System.Text;
 using FluentValidation;
 using System.Text.Json.Serialization;
+using Rental.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +83,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 
