@@ -122,7 +122,7 @@ namespace Rental.API.Data
                 entity.HasKey(x => new {x.RatedUserId, x.RaterUserId});
 
                 entity.HasOne(x => x.RaterUser).WithMany().HasForeignKey(x => x.RaterUserId).OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne(x => x.RatedUser).WithMany().HasForeignKey(x => x.RatedUserId).OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(x => x.RatedUser).WithMany(x => x.ReceivedRatings).HasForeignKey(x => x.RatedUserId).OnDelete(DeleteBehavior.NoAction);
             });
 
             builder.Entity<Transaction>(entity =>
