@@ -55,5 +55,22 @@ namespace Rental.API.Services
 
             return Result<NotificationResponse>.Success(response);
         }
+
+        public async Task<Result> DeleteNotificationAsync(int id, string userId)
+        {
+            var notification = await context.Notifications.FindAsync(id);
+            if(notification == null) {
+                return Result.Failure("Invalid Notification Id!");
+            }
+
+            if(notification.UserId != userId)
+            {
+                return Result.Failure("Can't remove this notification!");
+            }
+
+            context.Notifications.Remove(notification);
+            await context.SaveChangesAsync();
+            return Result.Success();
+        }
     }
 }
