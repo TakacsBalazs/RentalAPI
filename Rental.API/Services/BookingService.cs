@@ -76,6 +76,12 @@ namespace Rental.API.Services
 
             };
 
+            var notification = new Notification
+            {
+                UserId = tool.UserId,
+                Title = "New Booking!"
+            };
+
             using var dbTransaction = await context.Database.BeginTransactionAsync();
             try
             {
@@ -88,6 +94,9 @@ namespace Rental.API.Services
                 {
                     return Result<BookingResponse>.Failure(paymentResult.Errors);
                 }
+                notification.Message = $"Your {tool.Name} has been booked #{booking.Id} from {booking.StartDate:yyyy-MM-dd} to {booking.EndDate:yyyy-MM-dd}.";
+                context.Notifications.Add(notification);
+                await context.SaveChangesAsync();
 
                 await dbTransaction.CommitAsync();
             }
@@ -331,6 +340,15 @@ namespace Rental.API.Services
                 return Result.Failure($"{5-booking.FailedPickupAttempts} tries left!");
             }
 
+            var notification = new Notification
+            {
+                UserId = booking.RenterId,
+                Title = "Booking Started!",
+                Message = $"Pickup successful! You have the {booking.Tool.Name} #{booking.Id}. Please return it on time! ({booking.EndDate:yyyy-MM-dd})"
+            };
+
+            context.Notifications.Add(notification);
+
             booking.Status = BookingStatus.Active;
             await context.SaveChangesAsync();
             return Result.Success();
@@ -370,14 +388,24 @@ namespace Rental.API.Services
                     return Result.Failure(paymentResult.Errors);
                 }
 
+                var notification = new Notification
+                {
+                    Title = "Booking Cancelled!",
+                };
+
                 if (isOwner)
                 {
+                    notification.UserId = booking.RenterId;
+                    notification.Message = $"The owner cancelled booking #{booking.Id} for {booking.Tool.Name} from {booking.StartDate:yyyy-MM-dd} to {booking.EndDate:yyyy-MM-dd}. Your funds have been released.";
                     booking.Status = BookingStatus.CancelledByOwner;
                 }
                 else if (isRenter)
                 {
+                    notification.UserId = booking.Tool.UserId;
+                    notification.Message = $"The renter cancelled booking #{booking.Id} for {booking.Tool.Name} from {booking.StartDate:yyyy-MM-dd} to {booking.EndDate:yyyy-MM-dd}. The tool is available for others.";
                     booking.Status = BookingStatus.CancelledByRenter;
                 }
+                context.Notifications.Add(notification);
 
                 booking.IsDeleted = true;
                 booking.DeletedAt = DateTime.UtcNow;
@@ -431,6 +459,14 @@ namespace Rental.API.Services
                 }
                 booking.Status = BookingStatus.Completed;
                 booking.ReturnDate = DateTime.UtcNow;
+
+                var notification = new Notification
+                {
+                    UserId = booking.RenterId,
+                    Title = "Booking Completed!",
+                    Message = $"Booking #{booking.Id} for {booking.Tool.Name} was completed on {DateTime.UtcNow:yyyy-MM-dd}. Your security deposit has been released. Thanks for renting!"
+                };
+                context.Notifications.Add(notification);
                 await context.SaveChangesAsync();
                 await dbTransaction.CommitAsync();
             }
@@ -487,6 +523,15 @@ namespace Rental.API.Services
                 booking.ClosingNote = request.DamageDescription;
                 booking.Status = BookingStatus.Completed;
                 booking.ReturnDate = DateTime.UtcNow;
+
+                var notification = new Notification
+                {
+                    UserId = booking.RenterId,
+                    Title = "Damage Reported!",
+                    Message = $"Damage reported for booking #{booking.Id} ({booking.Tool.Name}). You were charged {request.DamageAmount:C}. Reason: {request.DamageDescription}"
+                };
+                context.Notifications.Add(notification);
+
                 await context.SaveChangesAsync();
                 await dbTransaction.CommitAsync();
 
