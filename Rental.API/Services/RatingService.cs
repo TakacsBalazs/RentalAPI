@@ -13,10 +13,12 @@ namespace Rental.API.Services
     {
         private readonly AppDbContext context;
         private readonly IServiceProvider serviceProvider;
-        public RatingService(AppDbContext context, IServiceProvider serviceProvider)
+        private readonly INotificationService notificationService;
+        public RatingService(AppDbContext context, IServiceProvider serviceProvider, INotificationService notificationService)
         {
             this.context = context;
             this.serviceProvider = serviceProvider;
+            this.notificationService = notificationService;
         }
         public async Task<Result<RatingResponse>> CreateRatingAsync(CreateRatingRequest request, string raterId)
         {
@@ -31,6 +33,8 @@ namespace Rental.API.Services
                 return Result<RatingResponse>.Failure("Can't rate yourself");
             }
 
+            bool shouldNotify = false;
+            bool isNewRating = false;
             var rating = await context.Ratings.Include(x => x.RaterUser).FirstOrDefaultAsync(x => x.RatedUserId == request.RatedUserId && x.RaterUserId == raterId);
             if (rating == null)
             {
@@ -41,9 +45,16 @@ namespace Rental.API.Services
                     Rate = request.Rate,
                     Comment = request.Comment
                 };
+                isNewRating = true;
+                shouldNotify = true;
+
                 context.Ratings.Add(rating);
             } else
             {
+                if(rating.Rate !=  request.Rate)
+                {
+                    shouldNotify = true;
+                }
                 rating.Rate = request.Rate;
                 rating.Comment = request.Comment;
                 rating.UpdatedAt = DateTime.UtcNow;
@@ -64,6 +75,17 @@ namespace Rental.API.Services
                 var user = await context.Users.FindAsync(raterId);
                 raterName = user?.FullName ?? "Unknown";
             }
+
+            if (shouldNotify)
+            {
+                string title = isNewRating ? "New Review!" : "Review Updated!";
+                string message = isNewRating
+                    ? $"{raterName} rated you {rating.Rate} stars! Check the feedback."
+                    : $"{raterName} updated their rating to {rating.Rate} stars.";
+
+                await notificationService.SendNotificationAsync(rating.RatedUserId, title, message);
+            }
+
 
             var response = new RatingResponse
             {
