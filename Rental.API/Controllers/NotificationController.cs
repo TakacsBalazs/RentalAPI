@@ -28,5 +28,18 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetNotificationById(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await notificationSercvice.GetNotificationByIdAsync(id, userId);
+            if(!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
