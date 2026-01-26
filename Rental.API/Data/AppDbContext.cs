@@ -19,6 +19,7 @@ namespace Rental.API.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<Rating> Ratings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -139,6 +140,17 @@ namespace Rental.API.Data
 
                 entity.HasOne(x => x.User).WithMany(x => x.Transactions).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(x => x.Booking).WithMany().HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            builder.Entity<Notification>(entity =>
+            {
+                entity.Property(x => x.Title).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.UserId).IsRequired();
+                entity.Property(x => x.Message).IsRequired().HasMaxLength(1000);
+                entity.Property(x => x.IsRead).IsRequired();
+                entity.Property(x => x.CreatedAt).IsRequired();
+
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             });
         }
 
