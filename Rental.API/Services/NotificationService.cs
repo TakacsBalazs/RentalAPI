@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Rental.API.Common;
 using Rental.API.Data;
+using Rental.API.Hubs;
+using Rental.API.Models;
 using Rental.API.Models.Responses;
 
 namespace Rental.API.Services
@@ -8,9 +11,11 @@ namespace Rental.API.Services
     public class NotificationService : INotificationService
     {
         private readonly AppDbContext context;
-        public NotificationService(AppDbContext context)
+        private readonly IHubContext<RentalHub, IRentalClient> hubContext;
+        public NotificationService(AppDbContext context, IHubContext<RentalHub, IRentalClient> hubContext)
         {
             this.context = context;
+            this.hubContext = hubContext;
         }
         public async Task<Result<IEnumerable<NotificationResponse>>> GetUserNotificationsAsync(string userId)
         {
@@ -71,6 +76,29 @@ namespace Rental.API.Services
             context.Notifications.Remove(notification);
             await context.SaveChangesAsync();
             return Result.Success();
+        }
+
+        public async Task SendNotificationAsync(string userId, string title, string message)
+        {
+            var notification = new Notification
+            {
+                UserId = userId,
+                Title = title,
+                Message = message
+            };
+
+            context.Notifications.Add(notification);
+            await context.SaveChangesAsync();
+
+            var response = new NotificationResponse
+            {
+                Id = notification.Id,
+                Title = notification.Title,
+                Message = notification.Message,
+                IsRead = false,
+                CreatedAt = notification.CreatedAt,
+            };
+            await hubContext.Clients.User(userId).ReceiveNotification(response);
         }
     }
 }
