@@ -18,6 +18,10 @@ This project was created to practice **Clean Architecture**, handling **complex 
 - **Booking Logic:** When a user rents a tool, the price + deposit is moved to the **Locked Balance**. This amount is only released to the owner after the tool is returned successfully.
 - **Transaction History:** The system tracks every deposit, payment, and refund in a transaction log.
 
+### Real-time Communication
+- **Instant Messaging:** Integrated **SignalR** to allow real-time chat between users.
+- **Live Notifications:** Users receive alerts (e.g., "New Booking Request") without needing to refresh the page.
+
 ### Rating System
 - **System**: Users can easily rate other users for better reliability.
 - **Validation:** The system prevents users from rating a user multiple times.
@@ -29,6 +33,7 @@ This project was created to practice **Clean Architecture**, handling **complex 
 - **Framework:** .NET 8 Web API
 - **Database:** Microsoft SQL Server
 - **ORM:** Entity Framework Core
+- **Real-time:** SignalR
 - **Validation:** FluentValidation
 - **Architecture:** Service Layer pattern with Result Pattern.
 - **Documentation:** Swagger / OpenAPI
@@ -48,6 +53,7 @@ The API is documented via **Swagger/OpenAPI**. Below are the main endpoints of t
 | **Users** | GET | /api/users/{id} | **(Auth Required)** View another user's public profile and rating stats. |
 | **Transactions** | GET | /api/transactions | **(Auth Required)** List personal financial history. |
 | **Bookings** | POST | /api/bookings | **(Auth Required)** Create a booking and lock renter's funds. |
+| **Chat** | WS | /rentalhub | SignalR Hub for real-time messaging. |
 
 > **Note on Testing:** Most endpoints require a valid JWT Token. If the Swagger UI does not have the "Authorize" button enabled, I recommend using **[Bruno](https://www.usebruno.com/)** (an open-source API client) to test the API. Include the token in the `Authorization` header: `Bearer <your-token>`.
 
