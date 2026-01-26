@@ -24,5 +24,36 @@ namespace Rental.API.Services
             }).ToListAsync();
             return Result<IEnumerable<NotificationResponse>>.Success(response);
         }
+
+        public async Task<Result<NotificationResponse>> GetNotificationByIdAsync(int id, string userId)
+        {
+            var notification = await context.Notifications.FindAsync(id);
+            if(notification == null)
+            {
+                return Result<NotificationResponse>.Failure("Invalid Notification Id!");
+            }
+
+            if(notification.UserId != userId)
+            {
+                return Result<NotificationResponse>.Failure("Can't see this notification!");
+            }
+
+            if (!notification.IsRead)
+            {
+                notification.IsRead = true;
+                await context.SaveChangesAsync();
+            }
+
+            var response = new NotificationResponse
+            {
+                Id = notification.Id,
+                Title = notification.Title,
+                Message = notification.Message,
+                IsRead = true,
+                CreatedAt = notification.CreatedAt,
+            };
+
+            return Result<NotificationResponse>.Success(response);
+        }
     }
 }
