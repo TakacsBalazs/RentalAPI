@@ -1,8 +1,10 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Rental.API.Common;
 using Rental.API.Data;
 using Rental.API.Extensions;
+using Rental.API.Hubs;
 using Rental.API.Models;
 using Rental.API.Models.Dtos;
 using Rental.API.Models.Requests;
@@ -14,10 +16,12 @@ namespace Rental.API.Services
     {
         private readonly AppDbContext context;
         private readonly IServiceProvider serviceProvider;
-        public ChatService(AppDbContext context, IServiceProvider serviceProvider)
+        private readonly IHubContext<RentalHub, IRentalClient> hubContext;
+        public ChatService(AppDbContext context, IServiceProvider serviceProvider, IHubContext<RentalHub, IRentalClient> hubContext)
         {
             this.context = context;
             this.serviceProvider = serviceProvider;
+            this.hubContext = hubContext;
         }
         public async Task<Result<ConversationResponse>> CreateConversationAsync(CreateConversationRequest request, string senderId)
         {
@@ -161,6 +165,10 @@ namespace Rental.API.Services
                 CreatedAt = message.CreatedAt,
                 IsRead = message.IsRead
             };
+
+            string getterId = conversation.User1Id != senderId ? conversation.User1Id : conversation.User2Id;
+            await hubContext.Clients.User(getterId).ReceiveMessage(response);
+
             return Result<MessageResponse>.Success(response);
         }
 
