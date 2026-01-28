@@ -521,5 +521,46 @@ namespace Rental.API.Services
             }
 
         }
+
+        public async Task<Result> CancelExpiredBookingAsync(int id)
+        {
+            var booking = await context.Bookings.Include(x => x.Tool).FirstOrDefaultAsync(x => x.Id == id);
+            if(booking == null)
+            {
+                return Result.Failure("Invalid Booking Id!");
+            }
+
+            if(booking.Status != BookingStatus.Reserved)
+            {
+                return Result.Failure("Can't be expired!");
+            }
+
+            using var dbTransaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var paymentResult = await paymentService.CancellationUnlockBookingAmountAsync(booking.RenterId, (booking.TotalPrice + booking.SecurityDeposit), booking.Id);
+                if (!paymentResult.IsSuccess)
+                {
+                    return Result.Failure(paymentResult.Errors);
+                }
+
+                booking.Status = BookingStatus.Expired;
+                booking.IsDeleted = true;
+                booking.DeletedAt = DateTime.UtcNow;
+
+                await notificationService.SendNotificationAsync(booking.RenterId, "Booking Expired!", $"The system automatically cancelled booking #{booking.Id} for '{booking.Tool.Name}' because it was not started on time. Your funds have been released.");
+
+                await notificationService.SendNotificationAsync(booking.Tool.UserId, "Booking Expired!", $"The system automatically cancelled booking #{booking.Id} for '{booking.Tool.Name}' because it was not started on time.");
+
+                await context.SaveChangesAsync();
+                await dbTransaction.CommitAsync();
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                await dbTransaction.RollbackAsync();
+                return Result.Failure("System error: " + ex.Message);
+            }
+        }
     }
 }
