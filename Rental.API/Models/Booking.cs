@@ -31,6 +31,7 @@ namespace Rental.API.Models
         Active,
         Completed,
         CancelledByRenter,
-        CancelledByOwner
+        CancelledByOwner,
+        Expired
     }
 }
