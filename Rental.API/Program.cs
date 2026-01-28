@@ -11,6 +11,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 using Rental.API.Middleware;
 using Rental.API.Hubs;
+using Rental.API.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,8 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddHostedService<BookingLifecycleBackgroundService>();
 
 builder.Services.AddAuthentication(options =>
 {
