@@ -20,6 +20,7 @@ namespace Rental.API.Data
         public DbSet<Rating> Ratings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -149,6 +150,20 @@ namespace Rental.API.Data
                 entity.Property(x => x.Message).IsRequired().HasMaxLength(1000);
                 entity.Property(x => x.IsRead).IsRequired();
                 entity.Property(x => x.CreatedAt).IsRequired();
+
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<RefreshToken>(entity =>
+            {
+                entity.Property(x => x.Token).IsRequired();
+                entity.Property(x => x.UserId).IsRequired();
+                entity.Property(x => x.CreatedAt).IsRequired();
+                entity.Property(x => x.ExpiresAt).IsRequired();
+                entity.Property(x => x.RevokedAt).IsRequired(false);
+                entity.Property(x => x.ReplacedByToken).IsRequired(false);
+
+                entity.Ignore(x => x.IsActive);
 
                 entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             });
