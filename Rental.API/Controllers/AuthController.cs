@@ -46,5 +46,16 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody]LogoutRequest request)
+        {
+            var result = await authService.LogoutAsync(request);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok("Successful logout!");
+        }
     }
 }
