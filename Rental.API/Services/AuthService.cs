@@ -1,7 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Rental.API.Common;
+using Rental.API.Data;
 using Rental.API.Extensions;
 using Rental.API.Models;
 using Rental.API.Models.Requests;
@@ -16,14 +18,16 @@ namespace Rental.API.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<User> userManager;
-        private readonly IConfiguration configuration;
+        private readonly ITokenService tokenService;
         private readonly IServiceProvider serviceProvider;
+        private readonly AppDbContext context;
 
-        public AuthService(UserManager<User> userManager, IConfiguration configuration, IServiceProvider serviceProvider)
+        public AuthService(UserManager<User> userManager, ITokenService tokenService, IServiceProvider serviceProvider, AppDbContext context)
         {
             this.userManager = userManager;
-            this.configuration = configuration;
+            this.tokenService = tokenService;
             this.serviceProvider = serviceProvider;
+            this.context = context;
         }
 
         public async Task<Result> RegisterAsync(CreateUserRequest request)
@@ -93,33 +97,63 @@ namespace Rental.API.Services
 
             await userManager.ResetAccessFailedCountAsync(user);
 
-            var tokenResult = GenerateJwtToken(user);
-            return Result<UserLoginResponse>.Success(tokenResult);
+            var accessToken = tokenService.GenerateJwtToken(user);
+
+            var refreshToken = tokenService.GenerateRefreshToken(user.Id);
+
+            context.RefreshTokens.Add(refreshToken);
+            await context.SaveChangesAsync();
+
+            var response = new UserLoginResponse
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken.Token
+            };
+            return Result<UserLoginResponse>.Success(response);
         }
 
-        private UserLoginResponse GenerateJwtToken(User user)
+        public async Task<Result<UserLoginResponse>> RefreshTokenAsync(RefreshTokenRequest request)
         {
-            var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:SecurityKey"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(10),
-                signingCredentials: creds
-            );
-
-            return new UserLoginResponse
+            var validate = await serviceProvider.ValidateRequestAsync<RefreshTokenRequest>(request);
+            if (!validate.IsSuccess)
             {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Expiration = token.ValidTo
+                return Result<UserLoginResponse>.Failure(validate.Errors);
+            }
+
+            var storedToken = await context.RefreshTokens.Include(x => x.User).FirstOrDefaultAsync(x => x.Token == request.RefreshToken);
+            if (storedToken == null)
+            {
+                return Result<UserLoginResponse>.Failure("Invalid Refresh Token!");
+            }
+
+            if(storedToken.ExpiresAt < DateTime.UtcNow)
+            {
+                return Result<UserLoginResponse>.Failure("Expired Refresh Token!");
+            }
+
+            if(storedToken.RevokedAt != null)
+            {
+                return Result<UserLoginResponse>.Failure("Used Refresh Token!");
+            }
+
+            storedToken.RevokedAt = DateTime.UtcNow;
+
+            var accessToken = tokenService.GenerateJwtToken(storedToken.User);
+
+            var refreshToken = tokenService.GenerateRefreshToken(storedToken.User.Id);
+
+            storedToken.ReplacedByToken = refreshToken.Token;
+
+            context.RefreshTokens.Add(refreshToken);
+
+            await context.SaveChangesAsync();
+
+            var response = new UserLoginResponse
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken.Token
             };
+            return Result<UserLoginResponse>.Success(response);
         }
     }
 }
