@@ -101,6 +101,22 @@ namespace Rental.API.Services
 
             var refreshToken = tokenService.GenerateRefreshToken(user.Id);
 
+            var now = DateTime.UtcNow;
+            int maxSessions = 6;
+            var activeTokens = await context.RefreshTokens.Where(x => x.UserId == user.Id && x.RevokedAt == null && x.ExpiresAt >  now).OrderBy(x => x.CreatedAt).ToListAsync();
+            if(activeTokens.Count >= maxSessions)
+            {
+                var tokensToRevoke = activeTokens.Take(activeTokens.Count - maxSessions + 1).ToList();
+
+                foreach (var token in tokensToRevoke)
+                {
+
+                    token.RevokedAt = now;
+                    token.ReplacedByToken = refreshToken.Token;
+ 
+                }
+            }
+
             context.RefreshTokens.Add(refreshToken);
             await context.SaveChangesAsync();
 
