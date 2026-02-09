@@ -9,5 +9,7 @@ namespace Rental.API
         Task<Result> RegisterAsync(CreateUserRequest request);
 
         Task<Result<UserLoginResponse>> LoginAsync(UserLoginRequest request);
+
+        Task<Result<UserLoginResponse>> RefreshTokenAsync(RefreshTokenRequest request);
     }
 }
