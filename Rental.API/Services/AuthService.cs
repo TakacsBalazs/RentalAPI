@@ -188,12 +188,12 @@ namespace Rental.API.Services
 
             if(refreshToken.RevokedAt != null)
             {
-                return Result.Failure("Token is revoked");
+                return Result.Success();
             }
 
             if(refreshToken.ExpiresAt < DateTime.UtcNow)
             {
-                return Result.Failure("Expired Refresh Token!");
+                return Result.Success();
             }
 
             refreshToken.RevokedAt = DateTime.UtcNow;
