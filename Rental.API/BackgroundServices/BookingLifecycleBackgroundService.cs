@@ -92,6 +92,9 @@ namespace Rental.API.BackgroundServices
                             }
 
                             await context.Notifications.Where(x => x.CreatedAt < DateTime.UtcNow.AddMonths(-6)).ExecuteDeleteAsync();
+
+                            var removeTimeForRefreshToken = DateTime.UtcNow.AddMonths(-3);
+                            await context.RefreshTokens.Where(x => (x.RevokedAt != null && x.RevokedAt < removeTimeForRefreshToken) || x.ExpiresAt < removeTimeForRefreshToken).ExecuteDeleteAsync();
                         }
                         
                     }
