@@ -35,5 +35,16 @@ namespace Rental.API.Controllers
             }
             return Ok(result.Data);
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            var result = await authService.RefreshTokenAsync(request);
+            if (!result.IsSuccess)
+            {
+                return Unauthorized(result.Errors);
+            }
+            return Ok(result.Data);
+        }
     }
 }
