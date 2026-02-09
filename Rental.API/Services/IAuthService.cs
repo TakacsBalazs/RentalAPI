@@ -11,5 +11,7 @@ namespace Rental.API
         Task<Result<UserLoginResponse>> LoginAsync(UserLoginRequest request);
 
         Task<Result<UserLoginResponse>> RefreshTokenAsync(RefreshTokenRequest request);
+
+        Task<Result> LogoutAsync(LogoutRequest request);
     }
 }
