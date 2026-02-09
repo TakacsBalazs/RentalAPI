@@ -171,5 +171,34 @@ namespace Rental.API.Services
             };
             return Result<UserLoginResponse>.Success(response);
         }
+
+        public async Task<Result> LogoutAsync(LogoutRequest request)
+        {
+            var validate = await serviceProvider.ValidateRequestAsync<LogoutRequest>(request);
+            if (!validate.IsSuccess)
+            {
+                return Result.Failure(validate.Errors);
+            }
+
+            var refreshToken = await context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == request.RefreshToken);
+            if(refreshToken == null)
+            {
+                return Result.Failure("Invalid Refresh Token!");
+            }
+
+            if(refreshToken.RevokedAt != null)
+            {
+                return Result.Failure("Token is revoked");
+            }
+
+            if(refreshToken.ExpiresAt < DateTime.UtcNow)
+            {
+                return Result.Failure("Expired Refresh Token!");
+            }
+
+            refreshToken.RevokedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+            return Result.Success();
+        }
     }
 }
